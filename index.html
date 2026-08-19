@@ -51,10 +51,15 @@
   .wrap{max-width:460px;margin:0 auto;padding:0 16px;}
 
   header{padding:20px 16px 14px;position:sticky;top:0;background:var(--bg);z-index:4;
-    border-bottom:1px solid var(--line);}
-  header .eyebrow{font-size:10.5px;letter-spacing:.18em;color:var(--green);text-transform:uppercase;font-weight:800;}
-  header h1{margin:0;font-size:21px;letter-spacing:-.01em;font-weight:800;}
-  header p{margin:2px 0 0;font-size:12px;color:var(--muted);}
+    border-bottom:1px solid var(--line);position:relative;}
+  header h1{margin:0;font-size:21px;letter-spacing:-.01em;font-weight:800;padding-right:82px;}
+  header p{margin:2px 0 0;font-size:12px;color:var(--muted);padding-right:82px;}
+
+  .langswitch{position:absolute;top:18px;right:16px;display:flex;gap:5px;}
+  .langswitch button{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;
+    width:34px;height:30px;font-size:16px;line-height:1;opacity:.45;display:flex;
+    align-items:center;justify-content:center;}
+  .langswitch button.active{opacity:1;border-color:var(--orange);background:rgba(232,114,12,.12);}
 
   main{padding:18px 0 8px;}
   section.tab{display:none;}
@@ -113,40 +118,44 @@
 <body>
 
 <nav class="sidebar">
-  <div class="brand"><div class="dot"></div><div class="lbl">Akkord</div></div>
+  <div class="brand"><div class="dot"></div><div class="lbl" data-i18n="brand">Akkord</div></div>
   <button data-tab="schicht" class="active">
     <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
-    Schicht
+    <span data-i18n="nav_schicht">Schicht</span>
   </button>
   <button data-tab="rechner">
     <svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h.01M12 11h.01M16 11h.01M8 15h.01M12 15h.01M16 15h.01"/></svg>
-    Rechner
+    <span data-i18n="nav_rechner">Rechner</span>
   </button>
   <button data-tab="auftrag">
     <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
-    Auftrag
+    <span data-i18n="nav_auftrag">Auftrag</span>
   </button>
 </nav>
 
 <div class="content">
 <div class="wrap">
   <header>
-    <h1>Akkordrechner</h1>
-    <p>Schicht, Leistungsgrad &amp; Auftragszeit</p>
+    <div class="langswitch">
+      <button data-lang="de" class="active" aria-label="Deutsch">🇩🇪</button>
+      <button data-lang="ru" aria-label="Русский">🇷🇺</button>
+    </div>
+    <h1 data-i18n="h1">Akkordrechner</h1>
+    <p data-i18n="subtitle">Schicht, Leistungsgrad &amp; Auftragszeit</p>
   </header>
 
   <main>
     <!-- SCHICHT -->
     <section class="tab active" id="tab-schicht">
       <div class="card">
-        <h2>Schicht wählen</h2>
+        <h2 data-i18n="card_schicht_waehlen">Schicht wählen</h2>
         <div class="shiftgrid" id="shiftgrid-1"></div>
         <div class="rows" id="shiftrows"></div>
       </div>
       <div class="card">
-        <h2 class="orange">Netto-Arbeitszeit</h2>
+        <h2 class="orange" data-i18n="card_netto">Netto-Arbeitszeit</h2>
         <div class="led orange">
-          <div class="caption">nach Abzug Pausen</div>
+          <div class="caption" data-i18n="led_netto_caption">nach Abzug Pausen</div>
           <div class="value" id="nettoDisplay">7,50 h</div>
           <div class="sub" id="nettoSub"></div>
         </div>
@@ -156,55 +165,55 @@
     <!-- RECHNER -->
     <section class="tab" id="tab-rechner">
       <div class="card">
-        <h2>Berechnungsart</h2>
+        <h2 data-i18n="card_berechnungsart">Berechnungsart</h2>
         <div class="modegrid" id="modegrid">
-          <button class="modebtn active" data-mode="stkh">Stück / Stunde</button>
-          <button class="modebtn" data-mode="gesamtzeit">Gesamtzeit Auftrag</button>
-          <button class="modebtn" data-mode="leistungsgrad">Leistungsgrad</button>
-          <button class="modebtn" data-mode="sollstk">Soll-Stückzahl / Schicht</button>
+          <button class="modebtn active" data-mode="stkh" data-i18n="mode_stkh">Stück / Stunde</button>
+          <button class="modebtn" data-mode="gesamtzeit" data-i18n="mode_gesamtzeit">Gesamtzeit Auftrag</button>
+          <button class="modebtn" data-mode="leistungsgrad" data-i18n="mode_leistungsgrad">Leistungsgrad</button>
+          <button class="modebtn" data-mode="sollstk" data-i18n="mode_sollstk">Soll-Stückzahl / Schicht</button>
         </div>
 
         <div id="inputs-stkh">
-          <label>Leistungsgrad (%)</label>
+          <label data-i18n="label_lg">Leistungsgrad (%)</label>
           <input type="number" id="i1_lg" inputmode="decimal" value="135">
-          <label>Vorgabezeit te (Industriemin.)</label>
+          <label data-i18n="label_te">Vorgabezeit te (Industriemin.)</label>
           <input type="number" id="i1_te" inputmode="decimal" value="3.5">
-          <div class="formula">Leistungsgrad : te = Stk. pro h</div>
+          <div class="formula" data-i18n="formula1">Leistungsgrad : te = Stk. pro h</div>
         </div>
 
         <div id="inputs-gesamtzeit" style="display:none">
-          <label>Vorgabezeit te (Industriemin.)</label>
+          <label data-i18n="label_te">Vorgabezeit te (Industriemin.)</label>
           <input type="number" id="i2_te" inputmode="decimal" value="3.5">
-          <label>Auftragsmenge (Stk.)</label>
+          <label data-i18n="label_menge">Auftragsmenge (Stk.)</label>
           <input type="number" id="i2_menge" inputmode="decimal" value="120">
-          <label>Leistungsgrad (%)</label>
+          <label data-i18n="label_lg">Leistungsgrad (%)</label>
           <input type="number" id="i2_lg" inputmode="decimal" value="135">
-          <div class="formula">te × Menge : Leistungsgrad = Gesamtzeit</div>
+          <div class="formula" data-i18n="formula2">te × Menge : Leistungsgrad = Gesamtzeit</div>
         </div>
 
         <div id="inputs-leistungsgrad" style="display:none">
-          <label>Vorgabezeit te (Industriemin.)</label>
+          <label data-i18n="label_te">Vorgabezeit te (Industriemin.)</label>
           <input type="number" id="i3_te" inputmode="decimal" value="3.5">
-          <label>Gefertigte Stückzahl</label>
+          <label data-i18n="label_stk">Gefertigte Stückzahl</label>
           <input type="number" id="i3_stk" inputmode="decimal" value="120">
-          <label>Gebrauchte Zeit (h)</label>
+          <label data-i18n="label_zeit_h">Gebrauchte Zeit (h)</label>
           <input type="number" id="i3_h" inputmode="decimal" value="3.11">
-          <div class="formula">te × Stückzahl : gebrauchte Zeit = Leistungsgrad</div>
+          <div class="formula" data-i18n="formula3">te × Stückzahl : gebrauchte Zeit = Leistungsgrad</div>
         </div>
 
         <div id="inputs-sollstk" style="display:none">
-          <label>Stunden pro Schicht (netto)</label>
+          <label data-i18n="label_h_schicht">Stunden pro Schicht (netto)</label>
           <input type="number" id="i4_h" inputmode="decimal" value="7.5">
-          <label>Leistungsgrad (%)</label>
+          <label data-i18n="label_lg">Leistungsgrad (%)</label>
           <input type="number" id="i4_lg" inputmode="decimal" value="135">
-          <label>Vorgabezeit te (Industriemin.)</label>
+          <label data-i18n="label_te">Vorgabezeit te (Industriemin.)</label>
           <input type="number" id="i4_te" inputmode="decimal" value="3.5">
-          <div class="formula">h pro Schicht × Leistungsgrad : te = Stückzahl</div>
+          <div class="formula" data-i18n="formula4">h pro Schicht × Leistungsgrad : te = Stückzahl</div>
         </div>
       </div>
 
       <div class="card">
-        <h2 class="orange">Ergebnis</h2>
+        <h2 class="orange" data-i18n="card_ergebnis">Ergebnis</h2>
         <div class="led orange">
           <div class="caption" id="resCaption">Stück pro Stunde</div>
           <div class="value" id="resValue">38,57</div>
@@ -215,37 +224,37 @@
     <!-- AUFTRAG -->
     <section class="tab" id="tab-auftrag">
       <div class="card">
-        <h2>Schicht</h2>
+        <h2 data-i18n="card_schicht_simple">Schicht</h2>
         <div class="shiftgrid" id="shiftgrid-2"></div>
       </div>
       <div class="card">
-        <h2>Auftrag</h2>
-        <label>Auftragsbeginn</label>
+        <h2 data-i18n="card_auftrag">Auftrag</h2>
+        <label data-i18n="label_auftragsbeginn">Auftragsbeginn</label>
         <input type="time" id="fe_start" value="06:00">
-        <label>Vorgabezeit te (Industriemin.)</label>
+        <label data-i18n="label_te">Vorgabezeit te (Industriemin.)</label>
         <input type="number" id="fe_te" inputmode="decimal" value="3.5">
-        <label>Zielstückzahl für diesen Auftrag</label>
+        <label data-i18n="label_zielstueckzahl">Zielstückzahl für diesen Auftrag</label>
         <input type="number" id="fe_menge" inputmode="decimal" value="120">
-        <label>Gewünschter Akkord (%)</label>
+        <label data-i18n="label_akkord">Gewünschter Akkord (%)</label>
         <input type="number" id="fe_lg" inputmode="decimal" value="135">
       </div>
       <div class="card">
-        <h2 class="orange">Abstempeln um</h2>
+        <h2 class="orange" data-i18n="card_abstempeln">Abstempeln um</h2>
         <div class="led orange">
-          <div class="caption">Auftrag bei diesem Akkord fertig</div>
+          <div class="caption" data-i18n="led_abstempeln_caption">Auftrag bei diesem Akkord fertig</div>
           <div class="value" id="feUhrzeit">14:00</div>
           <div class="sub" id="feSub"></div>
         </div>
         <div class="rows" style="margin-top:12px">
-          <div class="row"><span class="lbl">Benötigte Netto-Zeit</span><span class="val" id="feNetto">7,50 h</span></div>
-          <div class="row"><span class="lbl">Reguläres Schichtende</span><span class="val" id="feEnde">14:00</span></div>
-          <div class="row"><span class="lbl">Differenz zum Feierabend</span><span class="val" id="feDiff">±0 min</span></div>
+          <div class="row"><span class="lbl" data-i18n="row_benoetigte_zeit">Benötigte Netto-Zeit</span><span class="val" id="feNetto">7,50 h</span></div>
+          <div class="row"><span class="lbl" data-i18n="row_regulaeres_ende">Reguläres Schichtende</span><span class="val" id="feEnde">14:00</span></div>
+          <div class="row"><span class="lbl" data-i18n="row_diff">Differenz zum Feierabend</span><span class="val" id="feDiff">±0 min</span></div>
         </div>
       </div>
       <div class="card">
-        <h2>Noch zu schaffen bis Feierabend</h2>
+        <h2 data-i18n="card_noch_schaffen">Noch zu schaffen bis Feierabend</h2>
         <div class="led">
-          <div class="caption">Soll-Stückzahl im Rest der Schicht (ab Auftragsbeginn)</div>
+          <div class="caption" data-i18n="led_soll_caption">Soll-Stückzahl im Rest der Schicht (ab Auftragsbeginn)</div>
           <div class="value" id="feSoll">289 Stk.</div>
           <div class="sub" id="feSollSub"></div>
         </div>
@@ -254,19 +263,96 @@
   </main>
 
   <footer>
-    Zum Home-Bildschirm hinzufügen: <b>Teilen → Zum Home-Bildschirm</b><br>
-    Alle Werte in Industrieminuten / Prozent, Pausen werden automatisch berücksichtigt.
+    <span data-i18n="footer1_pre">Zum Home-Bildschirm hinzufügen: </span><b data-i18n="footer1_bold">Teilen → Zum Home-Bildschirm</b><br>
+    <span data-i18n="footer2">Alle Werte in Industrieminuten / Prozent, Pausen werden automatisch berücksichtigt.</span>
   </footer>
 </div>
 </div>
 
 <script>
+// ---------- i18n ----------
+const translations = {
+  de: {
+    brand:"Akkord", nav_schicht:"Schicht", nav_rechner:"Rechner", nav_auftrag:"Auftrag",
+    h1:"Akkordrechner", subtitle:"Schicht, Leistungsgrad & Auftragszeit",
+    card_schicht_waehlen:"Schicht wählen", card_netto:"Netto-Arbeitszeit", led_netto_caption:"nach Abzug Pausen",
+    card_berechnungsart:"Berechnungsart",
+    mode_stkh:"Stück / Stunde", mode_gesamtzeit:"Gesamtzeit Auftrag", mode_leistungsgrad:"Leistungsgrad", mode_sollstk:"Soll-Stückzahl / Schicht",
+    label_lg:"Leistungsgrad (%)", label_te:"Vorgabezeit te (Industriemin.)", label_menge:"Auftragsmenge (Stk.)",
+    label_stk:"Gefertigte Stückzahl", label_zeit_h:"Gebrauchte Zeit (h)", label_h_schicht:"Stunden pro Schicht (netto)",
+    formula1:"Leistungsgrad : te = Stk. pro h", formula2:"te × Menge : Leistungsgrad = Gesamtzeit",
+    formula3:"te × Stückzahl : gebrauchte Zeit = Leistungsgrad", formula4:"h pro Schicht × Leistungsgrad : te = Stückzahl",
+    card_ergebnis:"Ergebnis", card_schicht_simple:"Schicht", card_auftrag:"Auftrag",
+    label_auftragsbeginn:"Auftragsbeginn", label_zielstueckzahl:"Zielstückzahl für diesen Auftrag", label_akkord:"Gewünschter Akkord (%)",
+    card_abstempeln:"Abstempeln um", led_abstempeln_caption:"Auftrag bei diesem Akkord fertig",
+    row_benoetigte_zeit:"Benötigte Netto-Zeit", row_regulaeres_ende:"Reguläres Schichtende", row_diff:"Differenz zum Feierabend",
+    card_noch_schaffen:"Noch zu schaffen bis Feierabend", led_soll_caption:"Soll-Stückzahl im Rest der Schicht (ab Auftragsbeginn)",
+    footer1_pre:"Zum Home-Bildschirm hinzufügen: ", footer1_bold:"Teilen → Zum Home-Bildschirm",
+    footer2:"Alle Werte in Industrieminuten / Prozent, Pausen werden automatisch berücksichtigt.",
+    shift_frueh:"Frühschicht", shift_spaet:"Spätschicht", shift_nacht:"Nachtschicht",
+    short_frueh:"Früh", short_spaet:"Spät", short_nacht:"Nacht",
+    row_beginn:"Beginn", row_ende:"Ende", row_pause:"Pause", kennzahl_label:"Kennzahl",
+    res_caption_stkh:"Stück pro Stunde", res_caption_gesamtzeit:"Gesamtzeit für Auftrag",
+    res_caption_leistungsgrad:"Erreichter Leistungsgrad", res_caption_sollstk:"Soll-Stückzahl pro Schicht",
+    stk_suffix:"Stk.", h_suffix:" h", ueberstunden_note:"inkl. Überstunden – keine weiteren Pausen eingerechnet",
+    diff_frueher:"min früher", diff_spaeter:"min später",
+    restzeit_ab:"Restzeit ab", netto_suffix:"h netto bis Feierabend",
+  },
+  ru: {
+    brand:"Аккорд", nav_schicht:"Смена", nav_rechner:"Калькулятор", nav_auftrag:"Заказ",
+    h1:"Сдельный калькулятор", subtitle:"Смена, процент выработки и время заказа",
+    card_schicht_waehlen:"Выбрать смену", card_netto:"Чистое рабочее время", led_netto_caption:"за вычетом перерывов",
+    card_berechnungsart:"Вид расчёта",
+    mode_stkh:"Штук / час", mode_gesamtzeit:"Общее время заказа", mode_leistungsgrad:"Процент выработки", mode_sollstk:"Норма штук / смена",
+    label_lg:"Процент выработки (%)", label_te:"Норма времени te (пром. мин.)", label_menge:"Количество по заказу (шт.)",
+    label_stk:"Изготовлено штук", label_zeit_h:"Затраченное время (ч)", label_h_schicht:"Часов за смену (нетто)",
+    formula1:"Процент выработки : te = шт./ч", formula2:"te × Количество : Процент = Общее время",
+    formula3:"te × Штук : затраченное время = Процент выработки", formula4:"ч/смена × Процент : te = Штук",
+    card_ergebnis:"Результат", card_schicht_simple:"Смена", card_auftrag:"Заказ",
+    label_auftragsbeginn:"Начало заказа", label_zielstueckzahl:"Плановое количество по заказу", label_akkord:"Желаемый процент (%)",
+    card_abstempeln:"Время отметки", led_abstempeln_caption:"Заказ готов при этом проценте выработки",
+    row_benoetigte_zeit:"Необходимое чистое время", row_regulaeres_ende:"Обычное окончание смены", row_diff:"Разница к окончанию смены",
+    card_noch_schaffen:"Осталось сделать до конца смены", led_soll_caption:"Норма штук на остаток смены (с начала заказа)",
+    footer1_pre:"Добавить на главный экран: ", footer1_bold:"через меню браузера «Поделиться»",
+    footer2:"Все значения в промышленных минутах / процентах, перерывы учитываются автоматически.",
+    shift_frueh:"Утренняя смена", shift_spaet:"Вечерняя смена", shift_nacht:"Ночная смена",
+    short_frueh:"Утро", short_spaet:"Вечер", short_nacht:"Ночь",
+    row_beginn:"Начало", row_ende:"Конец", row_pause:"Перерыв", kennzahl_label:"Код",
+    res_caption_stkh:"Штук в час", res_caption_gesamtzeit:"Общее время заказа",
+    res_caption_leistungsgrad:"Достигнутый процент", res_caption_sollstk:"Норма штук за смену",
+    stk_suffix:"шт.", h_suffix:" ч", ueberstunden_note:"включая сверхурочные – дальнейшие перерывы не учтены",
+    diff_frueher:"мин раньше", diff_spaeter:"мин позже",
+    restzeit_ab:"Оставшееся время с", netto_suffix:"ч нетто до конца смены",
+  }
+};
+let lang = 'de';
+function t(key){ return (translations[lang] && translations[lang][key]) ?? key; }
+
+function applyStaticTranslations(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    el.textContent = t(el.dataset.i18n);
+  });
+  document.title = t('h1');
+  document.documentElement.lang = lang;
+}
+
+function bindLangSwitch(){
+  document.querySelectorAll('.langswitch button').forEach(btn=>{
+    btn.onclick = ()=>{
+      lang = btn.dataset.lang;
+      document.querySelectorAll('.langswitch button').forEach(b=>b.classList.toggle('active', b===btn));
+      applyStaticTranslations();
+      refreshAll();
+    };
+  });
+}
+
 // ---------- Shift definitions ----------
 // offsets in minutes from shift start, length always 480 (8h)
 const SHIFTS = {
-  2: { name:'Frühschicht', start:'06:00', breaks:[[180,195],[360,375]] },
-  3: { name:'Spätschicht', start:'14:00', breaks:[[240,270]] },
-  5: { name:'Nachtschicht', start:'22:00', breaks:[[225,255]] },
+  2: { nameKey:'shift_frueh', shortKey:'short_frueh', start:'06:00', breaks:[[180,195],[360,375]] },
+  3: { nameKey:'shift_spaet', shortKey:'short_spaet', start:'14:00', breaks:[[240,270]] },
+  5: { nameKey:'shift_nacht', shortKey:'short_nacht', start:'22:00', breaks:[[225,255]] },
 };
 const SHIFT_LEN = 480;
 let currentShift = 2;
@@ -294,7 +380,7 @@ function freeSegments(breaks, shiftLen){
   return segs;
 }
 
-// netto minutes worked between two offsets (breaks + anything past shiftLen excluded from breaks)
+// netto minutes worked between two offsets
 function nettoBetween(offA, offB, breaks, shiftLen){
   const segs=freeSegments(breaks, shiftLen);
   let total=0;
@@ -330,7 +416,7 @@ function renderShiftGrid(containerId){
   Object.entries(SHIFTS).forEach(([kz, s])=>{
     const btn = document.createElement('button');
     btn.className = 'shiftbtn' + (Number(kz)===currentShift ? ' active':'');
-    btn.innerHTML = `<div class="kz">${kz}</div><div class="nm">${s.name.replace('schicht','')}</div>`;
+    btn.innerHTML = `<div class="kz">${kz}</div><div class="nm">${t(s.shortKey)}</div>`;
     btn.onclick = ()=>{ currentShift = Number(kz);
       document.getElementById('fe_start').value = s.start;
       refreshAll(); };
@@ -345,16 +431,16 @@ function renderShiftDetails(){
   const breakRows = s.breaks.map(b=>{
     const from = minToTimeStr(timeStrToMin(s.start)+b[0]);
     const to = minToTimeStr(timeStrToMin(s.start)+b[1]);
-    return `<div class="row"><span class="lbl">Pause</span><span class="val">${from} – ${to}</span></div>`;
+    return `<div class="row"><span class="lbl">${t('row_pause')}</span><span class="val">${from} – ${to}</span></div>`;
   }).join('');
   el.innerHTML = `
-    <div class="row"><span class="lbl">Beginn</span><span class="val">${s.start}</span></div>
-    <div class="row"><span class="lbl">Ende</span><span class="val">${minToTimeStr(endMin)}</span></div>
+    <div class="row"><span class="lbl">${t('row_beginn')}</span><span class="val">${s.start}</span></div>
+    <div class="row"><span class="lbl">${t('row_ende')}</span><span class="val">${minToTimeStr(endMin)}</span></div>
     ${breakRows}
   `;
   const netto = nettoMinutes(currentShift)/60;
-  document.getElementById('nettoDisplay').textContent = fmt(netto)+' h';
-  document.getElementById('nettoSub').textContent = s.name+' · Kennzahl '+Object.keys(SHIFTS).find(k=>SHIFTS[k]===s);
+  document.getElementById('nettoDisplay').textContent = fmt(netto)+t('h_suffix');
+  document.getElementById('nettoSub').textContent = t(s.nameKey)+' · '+t('kennzahl_label')+' '+Object.keys(SHIFTS).find(k=>SHIFTS[k]===s);
 }
 
 // ---------- Rechner tab ----------
@@ -380,23 +466,23 @@ function calcRechner(){
   if (mode==='stkh'){
     const lg = num('i1_lg'), te = num('i1_te');
     const r = te>0 ? lg/te : 0;
-    cap.textContent = 'Stück pro Stunde';
+    cap.textContent = t('res_caption_stkh');
     val.textContent = fmt(r);
   } else if (mode==='gesamtzeit'){
     const te = num('i2_te'), menge = num('i2_menge'), lg = num('i2_lg');
     const r = lg>0 ? (te*menge)/lg : 0;
-    cap.textContent = 'Gesamtzeit für Auftrag';
-    val.textContent = fmt(r)+' h';
+    cap.textContent = t('res_caption_gesamtzeit');
+    val.textContent = fmt(r)+t('h_suffix');
   } else if (mode==='leistungsgrad'){
     const te = num('i3_te'), stk = num('i3_stk'), h = num('i3_h');
     const r = h>0 ? (te*stk)/h : 0;
-    cap.textContent = 'Erreichter Leistungsgrad';
+    cap.textContent = t('res_caption_leistungsgrad');
     val.textContent = fmt(r,1)+' %';
   } else if (mode==='sollstk'){
     const h = num('i4_h'), lg = num('i4_lg'), te = num('i4_te');
     const r = te>0 ? (h*lg)/te : 0;
-    cap.textContent = 'Soll-Stückzahl pro Schicht';
-    val.textContent = fmt(r,0)+' Stk.';
+    cap.textContent = t('res_caption_sollstk');
+    val.textContent = fmt(r,0)+' '+t('stk_suffix');
   }
 }
 
@@ -418,17 +504,17 @@ function calcAuftrag(){
   const endeMin = shiftStartMin + SHIFT_LEN;
 
   document.getElementById('feUhrzeit').textContent = minToTimeStr(finishClock);
-  document.getElementById('feSub').textContent = (finishOffset > SHIFT_LEN) ? 'inkl. Überstunden – keine weiteren Pausen eingerechnet' : s.name;
-  document.getElementById('feNetto').textContent = fmt(nettoStunden)+' h';
+  document.getElementById('feSub').textContent = (finishOffset > SHIFT_LEN) ? t('ueberstunden_note') : t(s.nameKey);
+  document.getElementById('feNetto').textContent = fmt(nettoStunden)+t('h_suffix');
   document.getElementById('feEnde').textContent = minToTimeStr(endeMin);
 
   const diffMin = Math.round(finishOffset - SHIFT_LEN);
   const diffEl = document.getElementById('feDiff');
   if (diffMin <= 0){
-    diffEl.textContent = fmt(Math.abs(diffMin),0)+' min früher';
+    diffEl.textContent = fmt(Math.abs(diffMin),0)+' '+t('diff_frueher');
     diffEl.className = 'val diffgood';
   } else {
-    diffEl.textContent = fmt(diffMin,0)+' min später';
+    diffEl.textContent = fmt(diffMin,0)+' '+t('diff_spaeter');
     diffEl.className = 'val diffbad';
   }
 
@@ -436,8 +522,8 @@ function calcAuftrag(){
   const restNettoMin = nettoBetween(startOffset, SHIFT_LEN, s.breaks, SHIFT_LEN);
   const restH = restNettoMin/60;
   const sollStk = te>0 ? (restH*lg)/te : 0;
-  document.getElementById('feSoll').textContent = fmt(sollStk,0)+' Stk.';
-  document.getElementById('feSollSub').textContent = 'Restzeit ab '+startStr+': '+fmt(restH)+' h netto bis Feierabend';
+  document.getElementById('feSoll').textContent = fmt(sollStk,0)+' '+t('stk_suffix');
+  document.getElementById('feSollSub').textContent = t('restzeit_ab')+' '+startStr+': '+fmt(restH)+' '+t('netto_suffix');
 }
 
 // ---------- Tabs ----------
@@ -464,7 +550,9 @@ document.querySelectorAll('#tab-rechner input, #tab-auftrag input').forEach(inp=
 
 bindTabs();
 bindModeButtons();
+bindLangSwitch();
 document.getElementById('fe_start').value = SHIFTS[currentShift].start;
+applyStaticTranslations();
 refreshAll();
 </script>
 </body>
