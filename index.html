@@ -9,6 +9,11 @@
      Laeuft komplett im Browser, kein Server. Pausenzeiten liegen nur
      lokal auf dem Handy (localStorage), es gehen keine Daten raus.
 
+     28.08.2026  Zahlenfelder sind jetzt Textfelder mit Ziffernblock. Mit
+                 type="number" hat das Handy das Komma verschluckt, aus
+                 "2,8" wurde "28" oder ein leeres Feld - dann stand auch
+                 nichts Brauchbares im Speicher. Dazu ein Hinweis, falls
+                 das Geraet gar nicht speichern darf (privater Modus).
      28.08.2026  Leistungsgrad und te bleiben stehen - werden wie die Pausen
                  nur lokal auf dem Geraet gemerkt, jeder hat also seine
                  eigenen Werte. Stueckzahlen absichtlich nicht, die sind
@@ -165,14 +170,13 @@
   /* ---------- Eingaben ---------- */
   label{display:block;font-size:10.5px;color:var(--grau);margin:11px 0 4px;letter-spacing:.03em}
   .kasten > label:first-child{margin-top:0}
-  input[type=number],input[type=text],input[type=time]{
+  input[type=text],input[type=time]{
     width:100%;height:42px;background:var(--bg);border:1px solid var(--linie-hell);padding:0 10px;
     color:var(--text);font-size:16px;      /* 16px, sonst zoomt iOS beim Antippen rein */
     font-family:var(--mono);font-variant-numeric:tabular-nums;border-radius:0;
   }
   /* Zeitfelder bauen sich Safari/Chrome sonst selbst hoeher als die Zahlenfelder */
   input[type=time]{-webkit-appearance:none;appearance:none;line-height:normal}
-  input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}   /* Pfeilchen weg */
   input[type=time]::-webkit-date-and-time-value{text-align:start;margin:0;padding:0}
   input[type=time]::-webkit-calendar-picker-indicator{opacity:.45}
   input:focus{outline:none;border-color:var(--gruen)}
@@ -225,6 +229,7 @@
     color:var(--grau);font-size:10px;text-align:center;letter-spacing:.02em;
   }
   .impressum b{color:var(--text);font-weight:600;letter-spacing:.03em}
+  .warnung{margin-top:8px;color:var(--rot);font-size:10.5px}
 </style>
 </head>
 <body>
@@ -293,39 +298,39 @@
         <div class="kasten">
           <div id="feld-stkh">
             <label data-txt="label_lg">Leistungsgrad (%)</label>
-            <input type="number" id="r1_lg" inputmode="decimal" value="135">
+            <input type="text" id="r1_lg" inputmode="decimal" value="135">
             <label data-txt="label_te">Vorgabezeit te (Industriemin.)</label>
-            <input type="number" id="r1_te" inputmode="decimal" value="3.5">
+            <input type="text" id="r1_te" inputmode="decimal" value="3.5">
             <div class="formel" data-txt="formula1">Leistungsgrad : te = Stk. pro h</div>
           </div>
 
           <div id="feld-gesamtzeit" hidden>
             <label data-txt="label_te">Vorgabezeit te (Industriemin.)</label>
-            <input type="number" id="r2_te" inputmode="decimal" value="3.5">
+            <input type="text" id="r2_te" inputmode="decimal" value="3.5">
             <label data-txt="label_menge">Auftragsmenge (Stk.)</label>
-            <input type="number" id="r2_menge" inputmode="decimal" value="120">
+            <input type="text" id="r2_menge" inputmode="decimal" value="120">
             <label data-txt="label_lg">Leistungsgrad (%)</label>
-            <input type="number" id="r2_lg" inputmode="decimal" value="135">
+            <input type="text" id="r2_lg" inputmode="decimal" value="135">
             <div class="formel" data-txt="formula2">te × Menge : Leistungsgrad = Gesamtzeit</div>
           </div>
 
           <div id="feld-leistungsgrad" hidden>
             <label data-txt="label_te">Vorgabezeit te (Industriemin.)</label>
-            <input type="number" id="r3_te" inputmode="decimal" value="3.5">
+            <input type="text" id="r3_te" inputmode="decimal" value="3.5">
             <label data-txt="label_stk">Gefertigte Stückzahl</label>
-            <input type="number" id="r3_stk" inputmode="decimal" value="120">
+            <input type="text" id="r3_stk" inputmode="decimal" value="120">
             <label data-txt="label_zeit_h">Gebrauchte Zeit (h)</label>
-            <input type="number" id="r3_h" inputmode="decimal" value="3.11">
+            <input type="text" id="r3_h" inputmode="decimal" value="3.11">
             <div class="formel" data-txt="formula3">te × Stückzahl : gebrauchte Zeit = Leistungsgrad</div>
           </div>
 
           <div id="feld-sollstk" hidden>
             <label data-txt="label_h_schicht">Stunden pro Schicht (netto)</label>
-            <input type="number" id="r4_h" inputmode="decimal" value="7.5">
+            <input type="text" id="r4_h" inputmode="decimal" value="7.5">
             <label data-txt="label_lg">Leistungsgrad (%)</label>
-            <input type="number" id="r4_lg" inputmode="decimal" value="135">
+            <input type="text" id="r4_lg" inputmode="decimal" value="135">
             <label data-txt="label_te">Vorgabezeit te (Industriemin.)</label>
-            <input type="number" id="r4_te" inputmode="decimal" value="3.5">
+            <input type="text" id="r4_te" inputmode="decimal" value="3.5">
             <div class="formel" data-txt="formula4">h pro Schicht × Leistungsgrad : te = Stückzahl</div>
           </div>
         </div>
@@ -354,11 +359,11 @@
           <label data-txt="label_auftragsbeginn">Auftragsbeginn</label>
           <input type="time" id="a_start" value="06:00">
           <label data-txt="label_te">Vorgabezeit te (Industriemin.)</label>
-          <input type="number" id="a_te" inputmode="decimal" value="3.5">
+          <input type="text" id="a_te" inputmode="decimal" value="3.5">
           <label data-txt="label_zielstueckzahl">Zielstückzahl für diesen Auftrag</label>
-          <input type="number" id="a_menge" inputmode="decimal" value="120">
+          <input type="text" id="a_menge" inputmode="decimal" value="120">
           <label data-txt="label_akkord">Gewünschter Akkord (%)</label>
-          <input type="number" id="a_lg" inputmode="decimal" value="135">
+          <input type="text" id="a_lg" inputmode="decimal" value="135">
         </div>
       </div>
 
@@ -392,6 +397,7 @@
   <footer>
     <span data-txt="footer1_pre">Zum Home-Bildschirm hinzufügen: </span><b data-txt="footer1_bold">Teilen → Zum Home-Bildschirm</b><br>
     <span data-txt="footer2">Alle Werte in Industrieminuten / Prozent, Pausen werden automatisch berücksichtigt.</span>
+    <div class="warnung" id="speicherwarnung" hidden data-txt="speicher_aus">Dieses Gerät speichert nichts – privater Modus?</div>
   </footer>
 
   <div class="impressum">
@@ -456,6 +462,7 @@ const TEXTE = {
     restzeit_ab:"Restzeit ab", netto_suffix:"h netto bis Feierabend",
     aufgerundet:"auf volle Minute aufgerundet",
     impressum:"Programmiert von",
+    speicher_aus:"Dieses Gerät speichert nichts – privater Modus?",
     rest_hinweis:"{stk} Stk. im Akkord – restliche {min} min abstempeln (z. B. Fehlerbeseitigung)",
   },
   ru: {
@@ -493,6 +500,7 @@ const TEXTE = {
     restzeit_ab:"Оставшееся время с", netto_suffix:"ч нетто до конца смены",
     aufgerundet:"округлено до полной минуты",
     impressum:"Разработал",
+    speicher_aus:"Это устройство ничего не сохраняет – приватный режим?",
     rest_hinweis:"{stk} шт. по аккорду – оставшиеся {min} мин отметить отдельно (напр. устранение брака)",
   },
 
@@ -534,6 +542,7 @@ const TEXTE = {
     restzeit_ab:"Kalan süre", netto_suffix:"sa net vardiya sonuna kadar",
     aufgerundet:"tam dakikaya yuvarlandı",
     impressum:"Geliştiren",
+    speicher_aus:"Bu cihaz hiçbir şey kaydetmiyor – gizli mod?",
     rest_hinweis:"{stk} adet akortta – kalan {min} dk ayrı damgala (örn. hata giderme)",
   },
 
@@ -575,6 +584,7 @@ const TEXTE = {
     restzeit_ab:"الوقت المتبقي من", netto_suffix:"س صافي حتى نهاية الوردية",
     aufgerundet:"مقرّب إلى الدقيقة الكاملة",
     impressum:"برمجة",
+    speicher_aus:"هذا الجهاز لا يحفظ شيئاً – وضع التصفح الخاص؟",
     rest_hinweis:"{stk} قطعة بالقطعة – سجّل الـ {min} د المتبقية على بند آخر (مثل إصلاح العيوب)",
   }
 };
@@ -628,7 +638,7 @@ function pausenSichern(){
     const obj = {};
     for (const k in SCHICHTEN) obj[k] = SCHICHTEN[k].pausen;
     localStorage.setItem('akkord_pausen', JSON.stringify(obj));
-  } catch (e) {}
+  } catch (e) { speicherWarnung(); }
 }
 
 // =====================================================================
@@ -661,7 +671,14 @@ function werteMerken(){
       if (feld) obj[id] = feld.value;
     });
     localStorage.setItem('akkord_werte', JSON.stringify(obj));
-  } catch (e) {}
+  } catch (e) { speicherWarnung(); }
+}
+
+// Privater Modus oder abgeschaltete Website-Daten: dann kann die App nichts
+// merken. Lieber einmal hinschreiben, als dass jemand vergeblich sucht.
+function speicherWarnung(){
+  const el = document.getElementById('speicherwarnung');
+  if (el) el.hidden = false;
 }
 
 // =====================================================================
@@ -697,8 +714,11 @@ function dauerText(min){
   return (std > 0 ? std + t('h_suffix') + ' ' : '') + (m % 60) + ' ' + t('min_suffix');
 }
 
+// Die Zahlenfelder sind bewusst Textfelder mit Ziffernblock. Bei
+// type="number" verschluckt das Handy das Komma - aus "2,8" wird dann je
+// nach Geraet "28" oder ein leeres Feld, und nichts stimmt mehr.
 function wert(id){
-  const roh = document.getElementById(id).value.replace(',', '.');
+  const roh = document.getElementById(id).value.replace(',', '.').trim();
   const n = parseFloat(roh);
   return isNaN(n) ? 0 : n;
 }
