@@ -9,6 +9,9 @@
      Laeuft komplett im Browser, kein Server. Pausenzeiten liegen nur
      lokal auf dem Handy (localStorage), es gehen keine Daten raus.
 
+     28.08.2026  Menueleiste von links nach unten geholt - liegt fest am
+                 unteren Rand, mit Luft fuer den Balken beim iPhone im
+                 App-Modus. Impressumzeile unten.
      28.08.2026  Tuerkisch und Arabisch dazu (AR laeuft rechts nach links),
                  Restzeit-Hinweis bei der Soll-Stueckzahl, Zeitfelder sind
                  jetzt genauso hoch wie die Zahlenfelder.
@@ -45,45 +48,38 @@
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{
-    margin:0;padding:0;height:100%;
+    margin:0;padding:0;
     background:var(--bg);color:var(--text);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     font-size:14px;-webkit-font-smoothing:antialiased;
   }
-  body{display:flex;min-height:100vh}
+  body{min-height:100vh;min-height:100dvh}   /* dvh, sonst rutscht im Browser die Adressleiste rein */
   button{font-family:inherit;cursor:pointer}
   :focus-visible{outline:2px solid var(--gruen);outline-offset:1px}
 
-  /* ---------- Menueleiste links ---------- */
+  /* ---------- Menueleiste unten ----------
+     Fest am unteren Rand. Das Polster unten ist fuer den Home-Balken beim
+     iPhone, wenn die Seite ueber den Homebildschirm als App laeuft. Im
+     normalen Browser ist der Wert 0, da faellt es nicht auf. */
   nav.leiste{
-    width:62px;flex:0 0 62px;background:#191c1f;border-inline-end:1px solid var(--linie);
-    display:flex;flex-direction:column;position:sticky;top:0;height:100vh;z-index:5;
+    position:fixed;bottom:0;left:0;right:0;z-index:10;
+    display:flex;justify-content:center;
+    background:#191c1f;border-top:1px solid var(--linie);
     padding-bottom:env(safe-area-inset-bottom);
   }
-  nav.leiste .marke{
-    padding:14px 6px 12px;text-align:center;border-bottom:1px solid var(--linie);
-  }
-  nav.leiste .marke .zeichen{
-    width:24px;height:24px;margin:0 auto 5px;border:2px solid var(--gruen);border-radius:50%;
-    position:relative;
-  }
-  nav.leiste .marke .zeichen::after{
-    content:"";position:absolute;left:50%;top:3px;width:2px;height:8px;background:var(--orange);
-  }
-  nav.leiste .marke .txt{
-    font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--grau);font-weight:700;
-  }
   nav.leiste button{
-    background:none;border:0;border-inline-start:2px solid transparent;color:var(--grau);
-    display:flex;flex-direction:column;align-items:center;gap:5px;
-    padding:13px 3px;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+    flex:1 1 0;max-width:150px;
+    background:none;border:0;border-top:2px solid transparent;color:var(--grau);
+    display:flex;flex-direction:column;align-items:center;gap:4px;
+    padding:9px 4px 10px;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
   }
-  nav.leiste button svg{width:19px;height:19px;stroke:var(--grau);fill:none;stroke-width:1.5}
-  nav.leiste button.an{background:var(--flaeche2);color:var(--text);border-inline-start-color:var(--gruen)}
+  nav.leiste button svg{width:20px;height:20px;stroke:var(--grau);fill:none;stroke-width:1.5}
+  nav.leiste button.an{background:var(--flaeche2);color:var(--text);border-top-color:var(--gruen)}
   nav.leiste button.an svg{stroke:var(--gruen)}
 
   /* ---------- Rahmen ---------- */
-  .inhalt{flex:1;min-width:0;padding-bottom:28px}
+  /* unten so viel Luft, dass der letzte Text nicht unter der Leiste klebt */
+  .inhalt{width:100%;padding-bottom:calc(74px + env(safe-area-inset-bottom))}
   .breite{max-width:460px;margin:0 auto;padding:0 13px}
 
   header{padding:15px 13px 12px;border-bottom:1px solid var(--linie)}
@@ -216,32 +212,18 @@
   [dir=rtl] input{direction:ltr;text-align:right}   /* Ziffern bleiben Ziffern */
 
   footer{
-    margin-top:6px;padding:13px 13px calc(6px + env(safe-area-inset-bottom));
+    margin-top:6px;padding:13px 13px 0;
     border-top:1px solid var(--linie);color:var(--grau);font-size:10.5px;line-height:1.55;
   }
   footer b{color:var(--text);font-weight:600}
+  .impressum{
+    margin-top:12px;padding:10px 13px 4px;border-top:1px solid var(--linie);
+    color:var(--grau);font-size:10px;text-align:center;letter-spacing:.02em;
+  }
+  .impressum b{color:var(--text);font-weight:600;letter-spacing:.03em}
 </style>
 </head>
 <body>
-
-<nav class="leiste">
-  <div class="marke">
-    <div class="zeichen"></div>
-    <div class="txt" data-txt="brand">Akkord</div>
-  </div>
-  <button data-seite="schicht" class="an">
-    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
-    <span data-txt="nav_schicht">Schicht</span>
-  </button>
-  <button data-seite="rechner">
-    <svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18"/><path d="M8 7h8M8 11h.01M12 11h.01M16 11h.01M8 15h.01M12 15h.01M16 15h.01M8 18h4"/></svg>
-    <span data-txt="nav_rechner">Rechner</span>
-  </button>
-  <button data-seite="auftrag">
-    <svg viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/></svg>
-    <span data-txt="nav_auftrag">Auftrag</span>
-  </button>
-</nav>
 
 <div class="inhalt">
 <div class="breite">
@@ -408,8 +390,27 @@
     <span data-txt="footer2">Alle Werte in Industrieminuten / Prozent, Pausen werden automatisch berücksichtigt.</span>
   </footer>
 
+  <div class="impressum">
+    <span data-txt="impressum">Programmiert von</span> <b>Michail Weinhardt</b>
+  </div>
+
 </div>
 </div>
+
+<nav class="leiste">
+  <button data-seite="schicht" class="an">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+    <span data-txt="nav_schicht">Schicht</span>
+  </button>
+  <button data-seite="rechner">
+    <svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18"/><path d="M8 7h8M8 11h.01M12 11h.01M16 11h.01M8 15h.01M12 15h.01M16 15h.01M8 18h4"/></svg>
+    <span data-txt="nav_rechner">Rechner</span>
+  </button>
+  <button data-seite="auftrag">
+    <svg viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/></svg>
+    <span data-txt="nav_auftrag">Auftrag</span>
+  </button>
+</nav>
 
 <script>
 // =====================================================================
@@ -450,6 +451,7 @@ const TEXTE = {
     diff_frueher:"früher", diff_spaeter:"später", diff_punkt:"±0 min – Punktlandung",
     restzeit_ab:"Restzeit ab", netto_suffix:"h netto bis Feierabend",
     aufgerundet:"auf volle Minute aufgerundet",
+    impressum:"Programmiert von",
     rest_hinweis:"{stk} Stk. im Akkord – restliche {min} min abstempeln (z. B. Fehlerbeseitigung)",
   },
   ru: {
@@ -486,6 +488,7 @@ const TEXTE = {
     diff_frueher:"раньше", diff_spaeter:"позже", diff_punkt:"±0 мин – точно в конец смены",
     restzeit_ab:"Оставшееся время с", netto_suffix:"ч нетто до конца смены",
     aufgerundet:"округлено до полной минуты",
+    impressum:"Разработал",
     rest_hinweis:"{stk} шт. по аккорду – оставшиеся {min} мин отметить отдельно (напр. устранение брака)",
   },
 
@@ -526,6 +529,7 @@ const TEXTE = {
     diff_frueher:"önce", diff_spaeter:"sonra", diff_punkt:"±0 dk – tam zamanında",
     restzeit_ab:"Kalan süre", netto_suffix:"sa net vardiya sonuna kadar",
     aufgerundet:"tam dakikaya yuvarlandı",
+    impressum:"Geliştiren",
     rest_hinweis:"{stk} adet akortta – kalan {min} dk ayrı damgala (örn. hata giderme)",
   },
 
@@ -566,6 +570,7 @@ const TEXTE = {
     diff_frueher:"قبل الموعد", diff_spaeter:"بعد الموعد", diff_punkt:"±0 د – في الموعد تماماً",
     restzeit_ab:"الوقت المتبقي من", netto_suffix:"س صافي حتى نهاية الوردية",
     aufgerundet:"مقرّب إلى الدقيقة الكاملة",
+    impressum:"برمجة",
     rest_hinweis:"{stk} قطعة بالقطعة – سجّل الـ {min} د المتبقية على بند آخر (مثل إصلاح العيوب)",
   }
 };
@@ -740,9 +745,10 @@ function schichtZeilenZeichnen(){
              '<span class="wert">' + uhrzeitAusMin(beginn + SCHICHTLAENGE) + '</span></div>';
 
   s.pausen.forEach(function(p){
+    // dir=ltr, sonst dreht Arabisch die Spanne zu "09:15 – 09:00" um
     html += '<div class="zeile"><span class="bez">' + t('row_pause') + '</span>' +
-            '<span class="wert">' + uhrzeitAusMin(beginn + p[0]) + ' – ' + uhrzeitAusMin(beginn + p[1]) +
-            '</span></div>';
+            '<span class="wert" dir="ltr">' + uhrzeitAusMin(beginn + p[0]) + ' – ' +
+            uhrzeitAusMin(beginn + p[1]) + '</span></div>';
   });
   document.getElementById('schichtzeilen').innerHTML = html;
 
