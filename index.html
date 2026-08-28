@@ -9,6 +9,9 @@
      Laeuft komplett im Browser, kein Server. Pausenzeiten liegen nur
      lokal auf dem Handy (localStorage), es gehen keine Daten raus.
 
+     28.08.2026  Tuerkisch und Arabisch dazu (AR laeuft rechts nach links),
+                 Restzeit-Hinweis bei der Soll-Stueckzahl, Zeitfelder sind
+                 jetzt genauso hoch wie die Zahlenfelder.
      28.08.2026  Manifest + Icon ergaenzt, Stempelzeit wird jetzt auf die
                  volle Minute aufgerundet (lieber 1 min zu spaet als zu
                  frueh stempeln), Soll-Stueckzahlen mit einer Nachkommastelle.
@@ -53,7 +56,7 @@
 
   /* ---------- Menueleiste links ---------- */
   nav.leiste{
-    width:62px;flex:0 0 62px;background:#191c1f;border-right:1px solid var(--linie);
+    width:62px;flex:0 0 62px;background:#191c1f;border-inline-end:1px solid var(--linie);
     display:flex;flex-direction:column;position:sticky;top:0;height:100vh;z-index:5;
     padding-bottom:env(safe-area-inset-bottom);
   }
@@ -71,28 +74,29 @@
     font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--grau);font-weight:700;
   }
   nav.leiste button{
-    background:none;border:0;border-left:2px solid transparent;color:var(--grau);
+    background:none;border:0;border-inline-start:2px solid transparent;color:var(--grau);
     display:flex;flex-direction:column;align-items:center;gap:5px;
     padding:13px 3px;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
   }
   nav.leiste button svg{width:19px;height:19px;stroke:var(--grau);fill:none;stroke-width:1.5}
-  nav.leiste button.an{background:var(--flaeche2);color:var(--text);border-left-color:var(--gruen)}
+  nav.leiste button.an{background:var(--flaeche2);color:var(--text);border-inline-start-color:var(--gruen)}
   nav.leiste button.an svg{stroke:var(--gruen)}
 
   /* ---------- Rahmen ---------- */
   .inhalt{flex:1;min-width:0;padding-bottom:28px}
   .breite{max-width:460px;margin:0 auto;padding:0 13px}
 
-  header{position:relative;padding:15px 13px 12px;border-bottom:1px solid var(--linie)}
-  header h1{margin:0;font-size:15px;font-weight:700;padding-right:76px;letter-spacing:.01em}
+  header{padding:15px 13px 12px;border-bottom:1px solid var(--linie)}
+  header .oben{display:flex;align-items:center;gap:10px}
+  header h1{flex:1;min-width:0;margin:0;font-size:15px;font-weight:700;letter-spacing:.01em}
   header .unter{
-    margin-top:3px;font-family:var(--mono);font-size:10px;letter-spacing:.07em;
-    text-transform:uppercase;color:var(--grau);padding-right:76px;
+    margin-top:4px;font-family:var(--mono);font-size:9.5px;letter-spacing:.05em;
+    text-transform:uppercase;color:var(--grau);white-space:nowrap;overflow:hidden;
   }
-  .sprache{position:absolute;top:15px;right:13px;display:flex;gap:1px;background:var(--linie)}
+  .sprache{flex:0 0 auto;display:flex;gap:1px;background:var(--linie)}
   .sprache button{
-    background:var(--flaeche2);border:0;width:31px;height:27px;color:var(--grau);
-    font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.05em;
+    background:var(--flaeche2);border:0;width:26px;height:27px;color:var(--grau);
+    font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.04em;
   }
   .sprache button.an{color:var(--text);box-shadow:inset 0 -2px 0 var(--gruen)}
 
@@ -143,11 +147,13 @@
   .zeile:last-child{border-bottom:0}
   .zeile:nth-child(even){background:var(--flaeche2)}
   .zeile .bez{color:var(--grau)}
-  .zeile .wert{font-family:var(--mono);font-weight:600;font-variant-numeric:tabular-nums;text-align:right}
+  .zeile .wert{font-family:var(--mono);font-weight:600;font-variant-numeric:tabular-nums;
+    text-align:end;unicode-bidi:isolate}
 
   /* ---------- Anzeigefeld ---------- */
-  .anzeige{background:var(--flaeche2);border:1px solid var(--linie);border-left:3px solid var(--grau);padding:12px 13px}
-  .anzeige.wichtig{border-left-color:var(--orange)}
+  .anzeige{background:var(--flaeche2);border:1px solid var(--linie);
+    border-inline-start:3px solid var(--grau);padding:12px 13px}
+  .anzeige.wichtig{border-inline-start-color:var(--orange)}
   .anzeige.wichtig .gross{color:var(--orange)}
   .anzeige .marke2{font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--grau)}
   .anzeige .gross{
@@ -160,10 +166,15 @@
   label{display:block;font-size:10.5px;color:var(--grau);margin:11px 0 4px;letter-spacing:.03em}
   .kasten > label:first-child{margin-top:0}
   input[type=number],input[type=text],input[type=time]{
-    width:100%;background:var(--bg);border:1px solid var(--linie-hell);padding:10px;
+    width:100%;height:42px;background:var(--bg);border:1px solid var(--linie-hell);padding:0 10px;
     color:var(--text);font-size:16px;      /* 16px, sonst zoomt iOS beim Antippen rein */
     font-family:var(--mono);font-variant-numeric:tabular-nums;border-radius:0;
   }
+  /* Zeitfelder bauen sich Safari/Chrome sonst selbst hoeher als die Zahlenfelder */
+  input[type=time]{-webkit-appearance:none;appearance:none;line-height:normal}
+  input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}   /* Pfeilchen weg */
+  input[type=time]::-webkit-date-and-time-value{text-align:start;margin:0;padding:0}
+  input[type=time]::-webkit-calendar-picker-indicator{opacity:.45}
   input:focus{outline:none;border-color:var(--gruen)}
 
   .artwahl{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--linie);
@@ -183,7 +194,7 @@
   .pausen{display:none;margin-top:10px;padding-top:10px;border-top:1px dashed var(--linie-hell)}
   .pausen.offen{display:block}
   .pausenzeile{display:flex;align-items:center;gap:6px;margin-bottom:6px}
-  .pausenzeile input[type=time]{flex:1;padding:8px;font-size:15px}
+  .pausenzeile input[type=time]{flex:1;height:38px}
   .pausenzeile .bis{color:var(--grau);font-size:12px}
   .weg{background:var(--flaeche2);border:1px solid var(--linie);color:var(--rot);
     width:31px;height:31px;flex:0 0 auto;font-size:13px}
@@ -195,6 +206,14 @@
 
   .gut{color:var(--gruen)}
   .schlecht{color:var(--rot)}
+
+  /* Arabisch laeuft von rechts nach links - das meiste dreht der Browser
+     ueber die logischen Angaben oben schon selber, das hier ist der Rest. */
+  [dir=rtl] .artwahl button.an{box-shadow:inset -2px 0 0 var(--gruen)}
+  [dir=rtl] .anzeige .gross,
+  [dir=rtl] .zeile .wert{direction:rtl}
+  [dir=rtl] .schichtwahl .kz{direction:ltr}
+  [dir=rtl] input{direction:ltr;text-align:right}   /* Ziffern bleiben Ziffern */
 
   footer{
     margin-top:6px;padding:13px 13px calc(6px + env(safe-area-inset-bottom));
@@ -228,12 +247,16 @@
 <div class="breite">
 
   <header>
-    <div class="sprache">
-      <button data-sprache="de" class="an" aria-label="Deutsch">DE</button>
-      <button data-sprache="ru" aria-label="Russisch">RU</button>
+    <div class="oben">
+      <h1 data-txt="h1">Akkordrechner</h1>
+      <div class="sprache">
+        <button data-sprache="de" class="an" aria-label="Deutsch">DE</button>
+        <button data-sprache="ru" aria-label="Russisch">RU</button>
+        <button data-sprache="tr" aria-label="Türkisch">TR</button>
+        <button data-sprache="ar" aria-label="Arabisch">AR</button>
+      </div>
     </div>
-    <h1 data-txt="h1">Akkordrechner</h1>
-    <div class="unter" id="kopfzeile">Schicht 2 &middot; 06:00 - 14:00</div>
+    <div class="unter" id="kopfzeile">Schicht 2 &middot; 06:00-14:00</div>
   </header>
 
   <main>
@@ -327,6 +350,7 @@
         <div class="anzeige wichtig">
           <div class="marke2" id="ergebnisMarke">Stück pro Stunde</div>
           <div class="gross" id="ergebnisWert">38,57</div>
+          <div class="klein" id="ergebnisUnter"></div>
         </div>
       </div>
     </section>
@@ -426,6 +450,7 @@ const TEXTE = {
     diff_frueher:"früher", diff_spaeter:"später", diff_punkt:"±0 min – Punktlandung",
     restzeit_ab:"Restzeit ab", netto_suffix:"h netto bis Feierabend",
     aufgerundet:"auf volle Minute aufgerundet",
+    rest_hinweis:"{stk} Stk. im Akkord – restliche {min} min abstempeln (z. B. Fehlerbeseitigung)",
   },
   ru: {
     brand:"Аккорд", nav_schicht:"Смена", nav_rechner:"Расчёт", nav_auftrag:"Заказ",
@@ -461,6 +486,87 @@ const TEXTE = {
     diff_frueher:"раньше", diff_spaeter:"позже", diff_punkt:"±0 мин – точно в конец смены",
     restzeit_ab:"Оставшееся время с", netto_suffix:"ч нетто до конца смены",
     aufgerundet:"округлено до полной минуты",
+    rest_hinweis:"{stk} шт. по аккорду – оставшиеся {min} мин отметить отдельно (напр. устранение брака)",
+  },
+
+  tr: {
+    brand:"Akort", nav_schicht:"Vardiya", nav_rechner:"Hesap", nav_auftrag:"İş emri",
+    h1:"Akort hesaplayıcı",
+    card_schicht_waehlen:"Vardiya seç", card_netto:"Net çalışma süresi",
+    led_netto_caption:"molalar düşüldükten sonra",
+    card_berechnungsart:"Hesaplama türü",
+    mode_stkh:"Adet / saat", mode_gesamtzeit:"İş emri toplam süresi",
+    mode_leistungsgrad:"Performans yüzdesi", mode_sollstk:"Hedef adet / vardiya",
+    label_lg:"Performans yüzdesi (%)", label_te:"Zaman normu te (endüstri dk.)",
+    label_menge:"İş emri miktarı (adet)",
+    label_stk:"Üretilen adet", label_zeit_h:"Harcanan süre (saat)",
+    label_h_schicht:"Vardiya başına saat (net)",
+    formula1:"Performans : te = saatte adet",
+    formula2:"te × Miktar : Performans = Toplam süre",
+    formula3:"te × Adet : harcanan süre = Performans",
+    formula4:"saat/vardiya × Performans : te = Adet",
+    card_ergebnis:"Sonuç", card_schicht_simple:"Vardiya", card_auftrag:"İş emri",
+    label_auftragsbeginn:"İş emri başlangıcı", label_zielstueckzahl:"Bu iş emri için hedef adet",
+    label_akkord:"İstenen performans (%)",
+    card_abstempeln:"Damgalama saati", led_abstempeln_caption:"Bu performansta iş emri biter",
+    row_benoetigte_zeit:"Gerekli net süre", row_stkh:"Saatte adet karşılığı",
+    row_regulaeres_ende:"Normal vardiya bitişi", row_diff:"Vardiya sonuna fark",
+    card_noch_schaffen:"Vardiya sonuna kadar kalan",
+    led_soll_caption:"Vardiyanın kalanı için hedef adet (iş emri başlangıcından)",
+    footer1_pre:"Ana ekrana ekle: ", footer1_bold:"Paylaş → Ana ekrana ekle",
+    footer2:"Tüm değerler endüstri dakikası / yüzde olarak, molalar otomatik hesaba katılır.",
+    btn_add:"+ Mola", btn_reset:"Standart", btn_save:"Kaydet",
+    shift_frueh:"Sabah vardiyası", shift_spaet:"Akşam vardiyası", shift_nacht:"Gece vardiyası",
+    short_frueh:"Sabah", short_spaet:"Akşam", short_nacht:"Gece",
+    row_beginn:"Başlangıç", row_ende:"Bitiş", row_pause:"Mola", kennzahl_label:"Vardiya",
+    res_caption_stkh:"Saatte adet", res_caption_gesamtzeit:"İş emri toplam süresi",
+    res_caption_leistungsgrad:"Ulaşılan performans", res_caption_sollstk:"Vardiya başına hedef adet",
+    stk_suffix:"adet", h_suffix:" sa", min_suffix:"dk",
+    ueberstunden_note:"vardiya bitiminden sonra – bundan sonra mola hesaba katılmaz",
+    diff_frueher:"önce", diff_spaeter:"sonra", diff_punkt:"±0 dk – tam zamanında",
+    restzeit_ab:"Kalan süre", netto_suffix:"sa net vardiya sonuna kadar",
+    aufgerundet:"tam dakikaya yuvarlandı",
+    rest_hinweis:"{stk} adet akortta – kalan {min} dk ayrı damgala (örn. hata giderme)",
+  },
+
+  ar: {
+    brand:"أكورد", nav_schicht:"الوردية", nav_rechner:"الحاسبة", nav_auftrag:"المهمة",
+    h1:"حاسبة أجر القطعة",
+    card_schicht_waehlen:"اختر الوردية", card_netto:"وقت العمل الصافي",
+    led_netto_caption:"بعد خصم الاستراحات",
+    card_berechnungsart:"نوع الحساب",
+    mode_stkh:"قطعة / ساعة", mode_gesamtzeit:"الوقت الكلي للمهمة",
+    mode_leistungsgrad:"نسبة الأداء", mode_sollstk:"العدد المطلوب / وردية",
+    label_lg:"نسبة الأداء (%)", label_te:"الوقت المعياري te (دقيقة صناعية)",
+    label_menge:"كمية المهمة (قطعة)",
+    label_stk:"عدد القطع المنتجة", label_zeit_h:"الوقت المستغرق (ساعة)",
+    label_h_schicht:"ساعات لكل وردية (صافي)",
+    formula1:"نسبة الأداء : te = قطعة في الساعة",
+    formula2:"te × الكمية : نسبة الأداء = الوقت الكلي",
+    formula3:"te × القطع : الوقت المستغرق = نسبة الأداء",
+    formula4:"ساعة/وردية × نسبة الأداء : te = القطع",
+    card_ergebnis:"النتيجة", card_schicht_simple:"الوردية", card_auftrag:"المهمة",
+    label_auftragsbeginn:"بداية المهمة", label_zielstueckzahl:"العدد المستهدف لهذه المهمة",
+    label_akkord:"نسبة الأداء المطلوبة (%)",
+    card_abstempeln:"وقت تسجيل الخروج", led_abstempeln_caption:"تنتهي المهمة عند هذه النسبة",
+    row_benoetigte_zeit:"الوقت الصافي المطلوب", row_stkh:"أي قطعة في الساعة",
+    row_regulaeres_ende:"نهاية الوردية المعتادة", row_diff:"الفرق عن نهاية الوردية",
+    card_noch_schaffen:"المتبقي حتى نهاية الوردية",
+    led_soll_caption:"العدد المطلوب لبقية الوردية (من بداية المهمة)",
+    footer1_pre:"أضف إلى الشاشة الرئيسية: ", footer1_bold:"مشاركة ← أضف إلى الشاشة الرئيسية",
+    footer2:"جميع القيم بالدقائق الصناعية والنسب المئوية، والاستراحات محسوبة تلقائياً.",
+    btn_add:"+ استراحة", btn_reset:"الافتراضي", btn_save:"حفظ",
+    shift_frueh:"وردية صباحية", shift_spaet:"وردية مسائية", shift_nacht:"وردية ليلية",
+    short_frueh:"صباح", short_spaet:"مساء", short_nacht:"ليل",
+    row_beginn:"البداية", row_ende:"النهاية", row_pause:"استراحة", kennzahl_label:"الوردية",
+    res_caption_stkh:"قطعة في الساعة", res_caption_gesamtzeit:"الوقت الكلي للمهمة",
+    res_caption_leistungsgrad:"نسبة الأداء المحققة", res_caption_sollstk:"العدد المطلوب لكل وردية",
+    stk_suffix:"قطعة", h_suffix:" س", min_suffix:"د",
+    ueberstunden_note:"بعد نهاية الوردية – لا تُحتسب استراحات بعد ذلك",
+    diff_frueher:"قبل الموعد", diff_spaeter:"بعد الموعد", diff_punkt:"±0 د – في الموعد تماماً",
+    restzeit_ab:"الوقت المتبقي من", netto_suffix:"س صافي حتى نهاية الوردية",
+    aufgerundet:"مقرّب إلى الدقيقة الكاملة",
+    rest_hinweis:"{stk} قطعة بالقطعة – سجّل الـ {min} د المتبقية على بند آخر (مثل إصلاح العيوب)",
   }
 };
 
@@ -475,6 +581,7 @@ function texteSetzen(){
   });
   document.title = t('h1');
   document.documentElement.lang = sprache;
+  document.documentElement.dir = (sprache === 'ar') ? 'rtl' : 'ltr';
 }
 
 // =====================================================================
@@ -645,7 +752,7 @@ function schichtZeilenZeichnen(){
     t(s.nameKey) + ' · ' + t('kennzahl_label') + ' ' + schicht;
 
   document.getElementById('kopfzeile').textContent =
-    t('kennzahl_label') + ' ' + schicht + ' · ' + s.start + ' - ' + uhrzeitAusMin(beginn + SCHICHTLAENGE);
+    t('kennzahl_label') + ' ' + schicht + ' · ' + s.start + '-' + uhrzeitAusMin(beginn + SCHICHTLAENGE);
 }
 
 // =====================================================================
@@ -737,9 +844,22 @@ function rechenartBedienung(){
   });
 }
 
+// Halbe Stuecke gibt es an der Maschine nicht. Was zur vollen Stueckzahl
+// fehlt, ist Zeit, die man woanders hinstempeln muss - Fehlerbeseitigung,
+// Ruesten, was auch immer. Genau das steht hier als Hinweis.
+function restHinweis(stk, gesamtMin, te, lg){
+  const ganze = Math.floor(stk + 1e-9);
+  if (ganze < 1 || lg <= 0 || te <= 0) return '';
+  const restMin = Math.round(gesamtMin - (te * ganze) / lg * 60);
+  if (restMin < 1) return '';
+  return t('rest_hinweis').replace('{stk}', zahl(ganze, 0)).replace('{min}', restMin);
+}
+
 function rechnen(){
-  const marke = document.getElementById('ergebnisMarke');
-  const feld  = document.getElementById('ergebnisWert');
+  const marke   = document.getElementById('ergebnisMarke');
+  const feld    = document.getElementById('ergebnisWert');
+  const hinweis = document.getElementById('ergebnisUnter');
+  hinweis.textContent = '';
 
   if (art === 'stkh'){
     const te = wert('r1_te');
@@ -757,10 +877,11 @@ function rechnen(){
     feld.textContent = zahl(h > 0 ? (wert('r3_te') * wert('r3_stk')) / h : 0, 1) + ' %';
 
   } else if (art === 'sollstk'){
-    const te = wert('r4_te');
-    const stk = te > 0 ? (wert('r4_h') * wert('r4_lg')) / te : 0;
+    const te = wert('r4_te'), std = wert('r4_h'), lg = wert('r4_lg');
+    const stk = te > 0 ? (std * lg) / te : 0;
     marke.textContent = t('res_caption_sollstk');
     feld.textContent = zahl(aufZehntel(stk), 1) + ' ' + t('stk_suffix');
+    hinweis.textContent = restHinweis(stk, std * 60, te, lg);
   }
 }
 
