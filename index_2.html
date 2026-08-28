@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Akkordrechner</title>
+
+<!-- Akkordrechner - interne Hilfe fuer die Schicht.
+     Laeuft komplett im Browser, kein Server. Pausenzeiten liegen nur
+     lokal auf dem Handy (localStorage), es gehen keine Daten raus.
+
+     28.08.2026  Manifest + Icon ergaenzt, Stempelzeit wird jetzt auf die
+                 volle Minute aufgerundet (lieber 1 min zu spaet als zu
+                 frueh stempeln), Soll-Stueckzahlen mit einer Nachkommastelle.
+     19.08.2026  RU-Umschaltung, Pausen ueber Zahnrad editierbar.
+-->
+
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png" sizes="192x192">
+<meta name="theme-color" content="#15171a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Akkord">
+<meta name="description" content="Schichtzeiten, Leistungsgrad und Abstempelzeit ausrechnen.">
+
+<style>
+  :root{
+    --bg:#15171a;
+    --flaeche:#1c1f23;
+    --flaeche2:#23272c;
+    --linie:#2f343a;
+    --linie-hell:#3f454c;
+    --gruen:#5FA02E;
+    --gruen-tief:#25311a;
+    --orange:#D9660A;
+    --text:#e6e8ea;
+    --grau:#878d94;
+    --rot:#c9503f;
+    --mono:"SF Mono",Menlo,Consolas,"DejaVu Sans Mono",monospace;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{
+    margin:0;padding:0;height:100%;
+    background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font-size:14px;-webkit-font-smoothing:antialiased;
+  }
+  body{display:flex;min-height:100vh}
+  button{font-family:inherit;cursor:pointer}
+  :focus-visible{outline:2px solid var(--gruen);outline-offset:1px}
+
+  /* ---------- Menueleiste links ---------- */
+  nav.leiste{
+    width:62px;flex:0 0 62px;background:#191c1f;border-right:1px solid var(--linie);
+    display:flex;flex-direction:column;position:sticky;top:0;height:100vh;z-index:5;
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  nav.leiste .marke{
+    padding:14px 6px 12px;text-align:center;border-bottom:1px solid var(--linie);
+  }
+  nav.leiste .marke .zeichen{
+    width:24px;height:24px;margin:0 auto 5px;border:2px solid var(--gruen);border-radius:50%;
+    position:relative;
+  }
+  nav.leiste .marke .zeichen::after{
+    content:"";position:absolute;left:50%;top:3px;width:2px;height:8px;background:var(--orange);
+  }
+  nav.leiste .marke .txt{
+    font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--grau);font-weight:700;
+  }
+  nav.leiste button{
+    background:none;border:0;border-left:2px solid transparent;color:var(--grau);
+    display:flex;flex-direction:column;align-items:center;gap:5px;
+    padding:13px 3px;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  }
+  nav.leiste button svg{width:19px;height:19px;stroke:var(--grau);fill:none;stroke-width:1.5}
+  nav.leiste button.an{background:var(--flaeche2);color:var(--text);border-left-color:var(--gruen)}
+  nav.leiste button.an svg{stroke:var(--gruen)}
+
+  /* ---------- Rahmen ---------- */
+  .inhalt{flex:1;min-width:0;padding-bottom:28px}
+  .breite{max-width:460px;margin:0 auto;padding:0 13px}
+
+  header{position:relative;padding:15px 13px 12px;border-bottom:1px solid var(--linie)}
+  header h1{margin:0;font-size:15px;font-weight:700;padding-right:76px;letter-spacing:.01em}
+  header .unter{
+    margin-top:3px;font-family:var(--mono);font-size:10px;letter-spacing:.07em;
+    text-transform:uppercase;color:var(--grau);padding-right:76px;
+  }
+  .sprache{position:absolute;top:15px;right:13px;display:flex;gap:1px;background:var(--linie)}
+  .sprache button{
+    background:var(--flaeche2);border:0;width:31px;height:27px;color:var(--grau);
+    font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.05em;
+  }
+  .sprache button.an{color:var(--text);box-shadow:inset 0 -2px 0 var(--gruen)}
+
+  main{padding:13px 0 4px}
+  section.seite{display:none}
+  section.seite.an{display:block}
+
+  /* ---------- Bloecke ---------- */
+  .block{margin-bottom:18px}
+  .block > h2{
+    display:flex;align-items:center;gap:9px;
+    margin:0 0 9px;font-size:10px;font-weight:700;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--grau);
+  }
+  .block > h2::after{content:"";flex:1;height:1px;background:var(--linie)}
+  .kopf{display:flex;align-items:flex-start;gap:9px;margin-bottom:9px}
+  .kopf h2{
+    flex:1;display:flex;align-items:center;gap:9px;margin:0;
+    font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--grau);
+  }
+  .kopf h2::after{content:"";flex:1;height:1px;background:var(--linie)}
+  .kasten{background:var(--flaeche);border:1px solid var(--linie);padding:12px}
+
+  .zahnrad{
+    background:var(--flaeche);border:1px solid var(--linie);width:27px;height:27px;
+    display:flex;align-items:center;justify-content:center;flex:0 0 auto;margin-top:-6px;
+  }
+  .zahnrad svg{width:15px;height:15px;stroke:var(--grau);fill:none;stroke-width:1.6}
+  .zahnrad.an{border-color:var(--gruen)}
+  .zahnrad.an svg{stroke:var(--gruen)}
+
+  /* ---------- Schichtwahl ---------- */
+  .schichtwahl{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--linie);
+    border:1px solid var(--linie)}
+  .schichtwahl button{
+    background:var(--flaeche);border:0;padding:11px 5px;text-align:center;color:var(--text);
+  }
+  .schichtwahl .kz{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--grau);line-height:1.1}
+  .schichtwahl .nm{font-size:10px;margin-top:3px;color:var(--grau)}
+  .schichtwahl button.an{background:var(--gruen-tief)}
+  .schichtwahl button.an .kz{color:var(--gruen)}
+  .schichtwahl button.an .nm{color:var(--text)}
+
+  /* ---------- Zeilen ---------- */
+  .zeilen{margin-top:9px;border:1px solid var(--linie)}
+  .zeile{display:flex;justify-content:space-between;align-items:baseline;gap:10px;
+    padding:8px 10px;font-size:12.5px;border-bottom:1px solid var(--linie);background:var(--flaeche)}
+  .zeile:last-child{border-bottom:0}
+  .zeile:nth-child(even){background:var(--flaeche2)}
+  .zeile .bez{color:var(--grau)}
+  .zeile .wert{font-family:var(--mono);font-weight:600;font-variant-numeric:tabular-nums;text-align:right}
+
+  /* ---------- Anzeigefeld ---------- */
+  .anzeige{background:var(--flaeche2);border:1px solid var(--linie);border-left:3px solid var(--grau);padding:12px 13px}
+  .anzeige.wichtig{border-left-color:var(--orange)}
+  .anzeige.wichtig .gross{color:var(--orange)}
+  .anzeige .marke2{font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--grau)}
+  .anzeige .gross{
+    font-family:var(--mono);font-size:27px;font-weight:700;line-height:1.15;margin-top:5px;
+    font-variant-numeric:tabular-nums;
+  }
+  .anzeige .klein{font-size:10.5px;color:var(--grau);margin-top:5px;line-height:1.4}
+
+  /* ---------- Eingaben ---------- */
+  label{display:block;font-size:10.5px;color:var(--grau);margin:11px 0 4px;letter-spacing:.03em}
+  .kasten > label:first-child{margin-top:0}
+  input[type=number],input[type=text],input[type=time]{
+    width:100%;background:var(--bg);border:1px solid var(--linie-hell);padding:10px;
+    color:var(--text);font-size:16px;      /* 16px, sonst zoomt iOS beim Antippen rein */
+    font-family:var(--mono);font-variant-numeric:tabular-nums;border-radius:0;
+  }
+  input:focus{outline:none;border-color:var(--gruen)}
+
+  .artwahl{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--linie);
+    border:1px solid var(--linie);margin-bottom:11px}
+  .artwahl button{
+    background:var(--flaeche);border:0;padding:10px 8px;color:var(--grau);
+    font-size:11px;font-weight:600;line-height:1.3;text-align:center;
+  }
+  .artwahl button.an{background:var(--gruen-tief);color:var(--text);box-shadow:inset 2px 0 0 var(--gruen)}
+
+  .formel{
+    margin-top:10px;padding:7px 9px;background:var(--bg);border:1px dashed var(--linie-hell);
+    font-family:var(--mono);font-size:10.5px;color:var(--grau);
+  }
+
+  /* ---------- Pausenpflege ---------- */
+  .pausen{display:none;margin-top:10px;padding-top:10px;border-top:1px dashed var(--linie-hell)}
+  .pausen.offen{display:block}
+  .pausenzeile{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+  .pausenzeile input[type=time]{flex:1;padding:8px;font-size:15px}
+  .pausenzeile .bis{color:var(--grau);font-size:12px}
+  .weg{background:var(--flaeche2);border:1px solid var(--linie);color:var(--rot);
+    width:31px;height:31px;flex:0 0 auto;font-size:13px}
+  .knoepfe{display:flex;gap:6px;margin-top:9px}
+  .knoepfe button{flex:1;padding:9px 5px;font-size:11px;font-weight:600;border:1px solid var(--linie)}
+  .knoepfe .neu{background:var(--flaeche2);color:var(--text)}
+  .knoepfe .zurueck{background:var(--flaeche2);color:var(--grau)}
+  .knoepfe .sichern{background:var(--gruen);border-color:var(--gruen);color:#0f1409;font-weight:700}
+
+  .gut{color:var(--gruen)}
+  .schlecht{color:var(--rot)}
+
+  footer{
+    margin-top:6px;padding:13px 13px calc(6px + env(safe-area-inset-bottom));
+    border-top:1px solid var(--linie);color:var(--grau);font-size:10.5px;line-height:1.55;
+  }
+  footer b{color:var(--text);font-weight:600}
+</style>
+</head>
+<body>
+
+<nav class="leiste">
+  <div class="marke">
+    <div class="zeichen"></div>
+    <div class="txt" data-txt="brand">Akkord</div>
+  </div>
+  <button data-seite="schicht" class="an">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+    <span data-txt="nav_schicht">Schicht</span>
+  </button>
+  <button data-seite="rechner">
+    <svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18"/><path d="M8 7h8M8 11h.01M12 11h.01M16 11h.01M8 15h.01M12 15h.01M16 15h.01M8 18h4"/></svg>
+    <span data-txt="nav_rechner">Rechner</span>
+  </button>
+  <button data-seite="auftrag">
+    <svg viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/></svg>
+    <span data-txt="nav_auftrag">Auftrag</span>
+  </button>
+</nav>
+
+<div class="inhalt">
+<div class="breite">
+
+  <header>
+    <div class="sprache">
+      <button data-sprache="de" class="an" aria-label="Deutsch">DE</button>
+      <button data-sprache="ru" aria-label="Russisch">RU</button>
+    </div>
+    <h1 data-txt="h1">Akkordrechner</h1>
+    <div class="unter" id="kopfzeile">Schicht 2 &middot; 06:00 - 14:00</div>
+  </header>
+
+  <main>
+
+    <!-- ======================= SCHICHT ======================= -->
+    <section class="seite an" id="seite-schicht">
+      <div class="block">
+        <div class="kopf">
+          <h2 data-txt="card_schicht_waehlen">Schicht wählen</h2>
+          <button class="zahnrad" id="zahnrad" aria-label="Pausenzeiten bearbeiten">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </button>
+        </div>
+        <div class="schichtwahl" id="schichtwahl-1"></div>
+        <div class="zeilen" id="schichtzeilen"></div>
+
+        <div class="pausen" id="pausenfeld">
+          <div id="pausenzeilen"></div>
+          <div class="knoepfe">
+            <button class="neu" id="pauseNeu" data-txt="btn_add">+ Pause</button>
+            <button class="zurueck" id="pauseZurueck" data-txt="btn_reset">Standard</button>
+            <button class="sichern" id="pauseSichern" data-txt="btn_save">Speichern</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2 data-txt="card_netto">Netto-Arbeitszeit</h2>
+        <div class="anzeige wichtig">
+          <div class="marke2" data-txt="led_netto_caption">nach Abzug Pausen</div>
+          <div class="gross" id="nettoAnzeige">7,50 h</div>
+          <div class="klein" id="nettoUnter"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================= RECHNER ======================= -->
+    <section class="seite" id="seite-rechner">
+      <div class="block">
+        <h2 data-txt="card_berechnungsart">Berechnungsart</h2>
+        <div class="artwahl" id="artwahl">
+          <button class="an" data-art="stkh" data-txt="mode_stkh">Stück / Stunde</button>
+          <button data-art="gesamtzeit" data-txt="mode_gesamtzeit">Gesamtzeit Auftrag</button>
+          <button data-art="leistungsgrad" data-txt="mode_leistungsgrad">Leistungsgrad</button>
+          <button data-art="sollstk" data-txt="mode_sollstk">Soll-Stückzahl / Schicht</button>
+        </div>
+
+        <div class="kasten">
+          <div id="feld-stkh">
+            <label data-txt="label_lg">Leistungsgrad (%)</label>
+            <input type="number" id="r1_lg" inputmode="decimal" value="135">
+            <label data-txt="label_te">Vorgabezeit te (Industriemin.)</label>
+            <input type="number" id="r1_te" inputmode="decimal" value="3.5">
+            <div class="formel" data-txt="formula1">Leistungsgrad : te = Stk. pro h</div>
+          </div>
+
+          <div id="feld-gesamtzeit" hidden>
+            <label data-txt="label_te">Vorgabezeit te (Industriemin.)</label>
+            <input type="number" id="r2_te" inputmode="decimal" value="3.5">
+            <label data-txt="label_menge">Auftragsmenge (Stk.)</label>
+            <input type="number" id="r2_menge" inputmode="decimal" value="120">
+            <label data-txt="label_lg">Leistungsgrad (%)</label>
+            <input type="number" id="r2_lg" inputmode="decimal" value="135">
+            <div class="formel" data-txt="formula2">te × Menge : Leistungsgrad = Gesamtzeit</div>
+          </div>
+
+          <div id="feld-leistungsgrad" hidden>
+            <label data-txt="label_te">Vorgabezeit te (Industriemin.)</label>
+            <input type="number" id="r3_te" inputmode="decimal" value="3.5">
+            <label data-txt="label_stk">Gefertigte Stückzahl</label>
+            <input type="number" id="r3_stk" inputmode="decimal" value="120">
+            <label data-txt="label_zeit_h">Gebrauchte Zeit (h)</label>
+            <input type="number" id="r3_h" inputmode="decimal" value="3.11">
+            <div class="formel" data-txt="formula3">te × Stückzahl : gebrauchte Zeit = Leistungsgrad</div>
+          </div>
+
+          <div id="feld-sollstk" hidden>
+            <label data-txt="label_h_schicht">Stunden pro Schicht (netto)</label>
+            <input type="number" id="r4_h" inputmode="decimal" value="7.5">
+            <label data-txt="label_lg">Leistungsgrad (%)</label>
+            <input type="number" id="r4_lg" inputmode="decimal" value="135">
+            <label data-txt="label_te">Vorgabezeit te (Industriemin.)</label>
+            <input type="number" id="r4_te" inputmode="decimal" value="3.5">
+            <div class="formel" data-txt="formula4">h pro Schicht × Leistungsgrad : te = Stückzahl</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2 data-txt="card_ergebnis">Ergebnis</h2>
+        <div class="anzeige wichtig">
+          <div class="marke2" id="ergebnisMarke">Stück pro Stunde</div>
+          <div class="gross" id="ergebnisWert">38,57</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================= AUFTRAG ======================= -->
+    <section class="seite" id="seite-auftrag">
+      <div class="block">
+        <h2 data-txt="card_schicht_simple">Schicht</h2>
+        <div class="schichtwahl" id="schichtwahl-2"></div>
+      </div>
+
+      <div class="block">
+        <h2 data-txt="card_auftrag">Auftrag</h2>
+        <div class="kasten">
+          <label data-txt="label_auftragsbeginn">Auftragsbeginn</label>
+          <input type="time" id="a_start" value="06:00">
+          <label data-txt="label_te">Vorgabezeit te (Industriemin.)</label>
+          <input type="number" id="a_te" inputmode="decimal" value="3.5">
+          <label data-txt="label_zielstueckzahl">Zielstückzahl für diesen Auftrag</label>
+          <input type="number" id="a_menge" inputmode="decimal" value="120">
+          <label data-txt="label_akkord">Gewünschter Akkord (%)</label>
+          <input type="number" id="a_lg" inputmode="decimal" value="135">
+        </div>
+      </div>
+
+      <div class="block">
+        <h2 data-txt="card_abstempeln">Abstempeln um</h2>
+        <div class="anzeige wichtig">
+          <div class="marke2" data-txt="led_abstempeln_caption">Auftrag bei diesem Akkord fertig</div>
+          <div class="gross" id="a_uhrzeit">14:00</div>
+          <div class="klein" id="a_unter"></div>
+        </div>
+        <div class="zeilen">
+          <div class="zeile"><span class="bez" data-txt="row_benoetigte_zeit">Benötigte Netto-Zeit</span><span class="wert" id="a_netto">7,50 h</span></div>
+          <div class="zeile"><span class="bez" data-txt="row_stkh">Entspricht Stück pro Stunde</span><span class="wert" id="a_stkh">38,6</span></div>
+          <div class="zeile"><span class="bez" data-txt="row_regulaeres_ende">Reguläres Schichtende</span><span class="wert" id="a_ende">14:00</span></div>
+          <div class="zeile"><span class="bez" data-txt="row_diff">Differenz zum Feierabend</span><span class="wert" id="a_diff">±0 min</span></div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2 data-txt="card_noch_schaffen">Noch zu schaffen bis Feierabend</h2>
+        <div class="anzeige">
+          <div class="marke2" data-txt="led_soll_caption">Soll-Stückzahl im Rest der Schicht (ab Auftragsbeginn)</div>
+          <div class="gross" id="a_soll">289,0 Stk.</div>
+          <div class="klein" id="a_sollUnter"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <span data-txt="footer1_pre">Zum Home-Bildschirm hinzufügen: </span><b data-txt="footer1_bold">Teilen → Zum Home-Bildschirm</b><br>
+    <span data-txt="footer2">Alle Werte in Industrieminuten / Prozent, Pausen werden automatisch berücksichtigt.</span>
+  </footer>
+
+</div>
+</div>
+
+<script>
+// =====================================================================
+//  Texte DE / RU
+// =====================================================================
+const TEXTE = {
+  de: {
+    brand:"Akkord", nav_schicht:"Schicht", nav_rechner:"Rechner", nav_auftrag:"Auftrag",
+    h1:"Akkordrechner",
+    card_schicht_waehlen:"Schicht wählen", card_netto:"Netto-Arbeitszeit", led_netto_caption:"nach Abzug Pausen",
+    card_berechnungsart:"Berechnungsart",
+    mode_stkh:"Stück / Stunde", mode_gesamtzeit:"Gesamtzeit Auftrag",
+    mode_leistungsgrad:"Leistungsgrad", mode_sollstk:"Soll-Stückzahl / Schicht",
+    label_lg:"Leistungsgrad (%)", label_te:"Vorgabezeit te (Industriemin.)", label_menge:"Auftragsmenge (Stk.)",
+    label_stk:"Gefertigte Stückzahl", label_zeit_h:"Gebrauchte Zeit (h)", label_h_schicht:"Stunden pro Schicht (netto)",
+    formula1:"Leistungsgrad : te = Stk. pro h",
+    formula2:"te × Menge : Leistungsgrad = Gesamtzeit",
+    formula3:"te × Stückzahl : gebrauchte Zeit = Leistungsgrad",
+    formula4:"h pro Schicht × Leistungsgrad : te = Stückzahl",
+    card_ergebnis:"Ergebnis", card_schicht_simple:"Schicht", card_auftrag:"Auftrag",
+    label_auftragsbeginn:"Auftragsbeginn", label_zielstueckzahl:"Zielstückzahl für diesen Auftrag",
+    label_akkord:"Gewünschter Akkord (%)",
+    card_abstempeln:"Abstempeln um", led_abstempeln_caption:"Auftrag bei diesem Akkord fertig",
+    row_benoetigte_zeit:"Benötigte Netto-Zeit", row_stkh:"Entspricht Stück pro Stunde",
+    row_regulaeres_ende:"Reguläres Schichtende", row_diff:"Differenz zum Feierabend",
+    card_noch_schaffen:"Noch zu schaffen bis Feierabend",
+    led_soll_caption:"Soll-Stückzahl im Rest der Schicht (ab Auftragsbeginn)",
+    footer1_pre:"Zum Home-Bildschirm hinzufügen: ", footer1_bold:"Teilen → Zum Home-Bildschirm",
+    footer2:"Alle Werte in Industrieminuten / Prozent, Pausen werden automatisch berücksichtigt.",
+    btn_add:"+ Pause", btn_reset:"Standard", btn_save:"Speichern",
+    shift_frueh:"Frühschicht", shift_spaet:"Spätschicht", shift_nacht:"Nachtschicht",
+    short_frueh:"Früh", short_spaet:"Spät", short_nacht:"Nacht",
+    row_beginn:"Beginn", row_ende:"Ende", row_pause:"Pause", kennzahl_label:"Schicht",
+    res_caption_stkh:"Stück pro Stunde", res_caption_gesamtzeit:"Gesamtzeit für Auftrag",
+    res_caption_leistungsgrad:"Erreichter Leistungsgrad", res_caption_sollstk:"Soll-Stückzahl pro Schicht",
+    stk_suffix:"Stk.", h_suffix:" h", min_suffix:"min",
+    ueberstunden_note:"nach Schichtende – ab da sind keine Pausen mehr eingerechnet",
+    diff_frueher:"früher", diff_spaeter:"später", diff_punkt:"±0 min – Punktlandung",
+    restzeit_ab:"Restzeit ab", netto_suffix:"h netto bis Feierabend",
+    aufgerundet:"auf volle Minute aufgerundet",
+  },
+  ru: {
+    brand:"Аккорд", nav_schicht:"Смена", nav_rechner:"Расчёт", nav_auftrag:"Заказ",
+    h1:"Сдельный калькулятор",
+    card_schicht_waehlen:"Выбрать смену", card_netto:"Чистое рабочее время", led_netto_caption:"за вычетом перерывов",
+    card_berechnungsart:"Вид расчёта",
+    mode_stkh:"Штук / час", mode_gesamtzeit:"Общее время заказа",
+    mode_leistungsgrad:"Процент выработки", mode_sollstk:"Норма штук / смена",
+    label_lg:"Процент выработки (%)", label_te:"Норма времени te (пром. мин.)", label_menge:"Количество по заказу (шт.)",
+    label_stk:"Изготовлено штук", label_zeit_h:"Затраченное время (ч)", label_h_schicht:"Часов за смену (нетто)",
+    formula1:"Процент выработки : te = шт./ч",
+    formula2:"te × Количество : Процент = Общее время",
+    formula3:"te × Штук : затраченное время = Процент выработки",
+    formula4:"ч/смена × Процент : te = Штук",
+    card_ergebnis:"Результат", card_schicht_simple:"Смена", card_auftrag:"Заказ",
+    label_auftragsbeginn:"Начало заказа", label_zielstueckzahl:"Плановое количество по заказу",
+    label_akkord:"Желаемый процент (%)",
+    card_abstempeln:"Время отметки", led_abstempeln_caption:"Заказ готов при этом проценте выработки",
+    row_benoetigte_zeit:"Необходимое чистое время", row_stkh:"Это штук в час",
+    row_regulaeres_ende:"Обычное окончание смены", row_diff:"Разница к окончанию смены",
+    card_noch_schaffen:"Осталось сделать до конца смены",
+    led_soll_caption:"Норма штук на остаток смены (с начала заказа)",
+    footer1_pre:"Добавить на главный экран: ", footer1_bold:"через меню браузера «Поделиться»",
+    footer2:"Все значения в промышленных минутах / процентах, перерывы учитываются автоматически.",
+    btn_add:"+ Перерыв", btn_reset:"Стандарт", btn_save:"Сохранить",
+    shift_frueh:"Утренняя смена", shift_spaet:"Вечерняя смена", shift_nacht:"Ночная смена",
+    short_frueh:"Утро", short_spaet:"Вечер", short_nacht:"Ночь",
+    row_beginn:"Начало", row_ende:"Конец", row_pause:"Перерыв", kennzahl_label:"Смена",
+    res_caption_stkh:"Штук в час", res_caption_gesamtzeit:"Общее время заказа",
+    res_caption_leistungsgrad:"Достигнутый процент", res_caption_sollstk:"Норма штук за смену",
+    stk_suffix:"шт.", h_suffix:" ч", min_suffix:"мин",
+    ueberstunden_note:"после конца смены – дальше перерывы не учитываются",
+    diff_frueher:"раньше", diff_spaeter:"позже", diff_punkt:"±0 мин – точно в конец смены",
+    restzeit_ab:"Оставшееся время с", netto_suffix:"ч нетто до конца смены",
+    aufgerundet:"округлено до полной минуты",
+  }
+};
+
+let sprache = 'de';
+function t(schluessel){
+  return (TEXTE[sprache] && TEXTE[sprache][schluessel]) || schluessel;
+}
+
+function texteSetzen(){
+  document.querySelectorAll('[data-txt]').forEach(function(el){
+    el.textContent = t(el.dataset.txt);
+  });
+  document.title = t('h1');
+  document.documentElement.lang = sprache;
+}
+
+// =====================================================================
+//  Schichten. Pausen als Minutenversatz ab Schichtbeginn, Schicht = 8 h.
+//  Kennzahlen 2 / 3 / 5 sind die aus dem Betrieb.
+// =====================================================================
+const SCHICHTLAENGE = 480;
+
+const SCHICHTEN = {
+  2: { nameKey:'shift_frueh', kurzKey:'short_frueh', start:'06:00', pausen:[[180,195],[360,375]] },
+  3: { nameKey:'shift_spaet', kurzKey:'short_spaet', start:'14:00', pausen:[[240,270]] },
+  5: { nameKey:'shift_nacht', kurzKey:'short_nacht', start:'22:00', pausen:[[225,255]] }
+};
+
+// Fallback, falls jemand die Pausen verstellt und wieder zurueck will
+const STANDARD_PAUSEN = { 2:[[180,195],[360,375]], 3:[[240,270]], 5:[[225,255]] };
+
+let schicht = 2;
+
+const kopie = function(x){ return JSON.parse(JSON.stringify(x)); };
+
+function pausenLaden(){
+  try {
+    const roh = localStorage.getItem('akkord_pausen');
+    if (!roh) return;
+    const obj = JSON.parse(roh);
+    for (const k in obj) if (SCHICHTEN[k]) SCHICHTEN[k].pausen = obj[k];
+  } catch (e) {
+    // Privatmodus o.ae. - dann bleiben eben die Standardzeiten stehen
+  }
+}
+
+function pausenSichern(){
+  try {
+    const obj = {};
+    for (const k in SCHICHTEN) obj[k] = SCHICHTEN[k].pausen;
+    localStorage.setItem('akkord_pausen', JSON.stringify(obj));
+  } catch (e) {}
+}
+
+// =====================================================================
+//  Kleinkram
+// =====================================================================
+function minAusUhrzeit(s){
+  const teile = s.split(':');
+  return Number(teile[0]) * 60 + Number(teile[1]);
+}
+
+// Achtung: hier wird zuerst gerundet und dann zerlegt, sonst kommt bei
+// z.B. 419,6 min "06:60" raus.
+function uhrzeitAusMin(min){
+  let m = Math.round(min);
+  m = ((m % 1440) + 1440) % 1440;
+  const std = Math.floor(m / 60);
+  return String(std).padStart(2,'0') + ':' + String(m % 60).padStart(2,'0');
+}
+
+function zahl(n, stellen){
+  if (stellen === undefined) stellen = 2;
+  if (!isFinite(n)) n = 0;
+  return n.toLocaleString('de-DE', {minimumFractionDigits:stellen, maximumFractionDigits:stellen});
+}
+
+// Stueckzahlen sollen auf 0,1 stehen
+const aufZehntel = function(n){ return Math.round(n * 10) / 10; };
+
+// 278 min liest sich schlechter als 4 h 38 min
+function dauerText(min){
+  const m = Math.round(Math.abs(min));
+  const std = Math.floor(m / 60);
+  return (std > 0 ? std + t('h_suffix') + ' ' : '') + (m % 60) + ' ' + t('min_suffix');
+}
+
+function wert(id){
+  const roh = document.getElementById(id).value.replace(',', '.');
+  const n = parseFloat(roh);
+  return isNaN(n) ? 0 : n;
+}
+
+// =====================================================================
+//  Zeitrechnung mit Pausen
+// =====================================================================
+
+// Die Abschnitte, in denen tatsaechlich gearbeitet wird - [von, bis] ab Schichtbeginn
+function arbeitsfenster(pausen, laenge){
+  const fenster = [];
+  const sortiert = pausen.slice().sort(function(a,b){ return a[0] - b[0]; });
+  let stand = 0;
+  for (let i = 0; i < sortiert.length; i++){
+    const von = sortiert[i][0], bis = sortiert[i][1];
+    if (von > stand) fenster.push([stand, von]);
+    if (bis > stand) stand = bis;
+  }
+  if (stand < laenge) fenster.push([stand, laenge]);
+  return fenster;
+}
+
+// Netto-Minuten zwischen zwei Zeitpunkten der Schicht
+function nettoZwischen(von, bis, pausen, laenge){
+  let summe = 0;
+  arbeitsfenster(pausen, laenge).forEach(function(f){
+    const a = Math.max(f[0], von), b = Math.min(f[1], bis);
+    if (b > a) summe += b - a;
+  });
+  if (bis > laenge) summe += bis - Math.max(laenge, von);   // Ueberstunden, ohne weitere Pause
+  return summe;
+}
+
+// Wann sind ab "start" die geforderten Netto-Minuten abgearbeitet?
+// Laeuft notfalls ueber das Schichtende hinaus.
+function endeNachNetto(start, nettoMin, pausen, laenge){
+  const fenster = arbeitsfenster(pausen, laenge);
+  let gearbeitet = 0;
+  for (let i = 0; i < fenster.length; i++){
+    const von = Math.max(fenster[i][0], start), bis = fenster[i][1];
+    if (bis <= von) continue;
+    if (gearbeitet + (bis - von) >= nettoMin) return von + (nettoMin - gearbeitet);
+    gearbeitet += bis - von;
+  }
+  return Math.max(laenge, start) + (nettoMin - gearbeitet);
+}
+
+function nettoMinutenSchicht(kz){
+  const pause = SCHICHTEN[kz].pausen.reduce(function(s,p){ return s + (p[1] - p[0]); }, 0);
+  return SCHICHTLAENGE - pause;
+}
+
+// =====================================================================
+//  Schichtauswahl (steht auf zwei Seiten, deshalb als Funktion)
+// =====================================================================
+function schichtwahlZeichnen(id){
+  const feld = document.getElementById(id);
+  feld.innerHTML = '';
+  Object.keys(SCHICHTEN).forEach(function(kz){
+    const s = SCHICHTEN[kz];
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = (Number(kz) === schicht) ? 'an' : '';
+    b.innerHTML = '<div class="kz">' + kz + '</div><div class="nm">' + t(s.kurzKey) + '</div>';
+    b.onclick = function(){
+      schicht = Number(kz);
+      document.getElementById('a_start').value = s.start;   // Auftragsbeginn mitziehen
+      allesNeu();
+    };
+    feld.appendChild(b);
+  });
+}
+
+function schichtZeilenZeichnen(){
+  const s = SCHICHTEN[schicht];
+  const beginn = minAusUhrzeit(s.start);
+
+  let html = '<div class="zeile"><span class="bez">' + t('row_beginn') + '</span>' +
+             '<span class="wert">' + s.start + '</span></div>' +
+             '<div class="zeile"><span class="bez">' + t('row_ende') + '</span>' +
+             '<span class="wert">' + uhrzeitAusMin(beginn + SCHICHTLAENGE) + '</span></div>';
+
+  s.pausen.forEach(function(p){
+    html += '<div class="zeile"><span class="bez">' + t('row_pause') + '</span>' +
+            '<span class="wert">' + uhrzeitAusMin(beginn + p[0]) + ' – ' + uhrzeitAusMin(beginn + p[1]) +
+            '</span></div>';
+  });
+  document.getElementById('schichtzeilen').innerHTML = html;
+
+  const netto = nettoMinutenSchicht(schicht) / 60;
+  document.getElementById('nettoAnzeige').textContent = zahl(netto) + t('h_suffix');
+  document.getElementById('nettoUnter').textContent =
+    t(s.nameKey) + ' · ' + t('kennzahl_label') + ' ' + schicht;
+
+  document.getElementById('kopfzeile').textContent =
+    t('kennzahl_label') + ' ' + schicht + ' · ' + s.start + ' - ' + uhrzeitAusMin(beginn + SCHICHTLAENGE);
+}
+
+// =====================================================================
+//  Pausen bearbeiten (Zahnrad)
+// =====================================================================
+function pausenZeilenZeichnen(){
+  const s = SCHICHTEN[schicht];
+  const beginn = minAusUhrzeit(s.start);
+  const feld = document.getElementById('pausenzeilen');
+
+  feld.innerHTML = s.pausen.map(function(p, i){
+    return '<div class="pausenzeile">' +
+             '<input type="time" class="pvon" value="' + uhrzeitAusMin(beginn + p[0]) + '">' +
+             '<span class="bis">–</span>' +
+             '<input type="time" class="pbis" value="' + uhrzeitAusMin(beginn + p[1]) + '">' +
+             '<button class="weg" data-nr="' + i + '" aria-label="Pause löschen">✕</button>' +
+           '</div>';
+  }).join('');
+
+  feld.querySelectorAll('.weg').forEach(function(b){
+    b.onclick = function(){
+      const nr = Number(b.dataset.nr);
+      SCHICHTEN[schicht].pausen = SCHICHTEN[schicht].pausen.filter(function(_, i){ return i !== nr; });
+      pausenZeilenZeichnen();
+    };
+  });
+}
+
+function pausenBedienung(){
+  const rad = document.getElementById('zahnrad');
+  const feld = document.getElementById('pausenfeld');
+
+  rad.onclick = function(){
+    feld.classList.toggle('offen');
+    rad.classList.toggle('an');
+    if (feld.classList.contains('offen')) pausenZeilenZeichnen();
+  };
+
+  document.getElementById('pauseNeu').onclick = function(){
+    SCHICHTEN[schicht].pausen.push([0, 15]);
+    pausenZeilenZeichnen();
+  };
+
+  document.getElementById('pauseZurueck').onclick = function(){
+    SCHICHTEN[schicht].pausen = kopie(STANDARD_PAUSEN[schicht]);
+    pausenSichern();
+    pausenZeilenZeichnen();
+    allesNeu();
+  };
+
+  document.getElementById('pauseSichern').onclick = function(){
+    const beginn = minAusUhrzeit(SCHICHTEN[schicht].start);
+    const neu = [];
+
+    document.querySelectorAll('#pausenzeilen .pausenzeile').forEach(function(zeile){
+      const von = zeile.querySelector('.pvon').value;
+      const bis = zeile.querySelector('.pbis').value;
+      if (!von || !bis) return;
+      // Versatz ab Schichtbeginn, Nachtschicht laeuft ueber Mitternacht
+      const a = ((minAusUhrzeit(von) - beginn) % 1440 + 1440) % 1440;
+      const b = ((minAusUhrzeit(bis) - beginn) % 1440 + 1440) % 1440;
+      if (b > a) neu.push([a, b]);
+    });
+
+    neu.sort(function(x,y){ return x[0] - y[0]; });
+    SCHICHTEN[schicht].pausen = neu.length ? neu : kopie(STANDARD_PAUSEN[schicht]);
+    pausenSichern();
+
+    feld.classList.remove('offen');
+    rad.classList.remove('an');
+    allesNeu();
+  };
+}
+
+// =====================================================================
+//  Seite "Rechner"
+// =====================================================================
+const RECHENARTEN = ['stkh','gesamtzeit','leistungsgrad','sollstk'];
+let art = 'stkh';
+
+function rechenartBedienung(){
+  document.querySelectorAll('#artwahl button').forEach(function(b){
+    b.onclick = function(){
+      art = b.dataset.art;
+      document.querySelectorAll('#artwahl button').forEach(function(x){ x.classList.toggle('an', x === b); });
+      RECHENARTEN.forEach(function(a){ document.getElementById('feld-' + a).hidden = (a !== art); });
+      rechnen();
+    };
+  });
+}
+
+function rechnen(){
+  const marke = document.getElementById('ergebnisMarke');
+  const feld  = document.getElementById('ergebnisWert');
+
+  if (art === 'stkh'){
+    const te = wert('r1_te');
+    marke.textContent = t('res_caption_stkh');
+    feld.textContent = zahl(te > 0 ? wert('r1_lg') / te : 0);
+
+  } else if (art === 'gesamtzeit'){
+    const lg = wert('r2_lg');
+    marke.textContent = t('res_caption_gesamtzeit');
+    feld.textContent = zahl(lg > 0 ? (wert('r2_te') * wert('r2_menge')) / lg : 0) + t('h_suffix');
+
+  } else if (art === 'leistungsgrad'){
+    const h = wert('r3_h');
+    marke.textContent = t('res_caption_leistungsgrad');
+    feld.textContent = zahl(h > 0 ? (wert('r3_te') * wert('r3_stk')) / h : 0, 1) + ' %';
+
+  } else if (art === 'sollstk'){
+    const te = wert('r4_te');
+    const stk = te > 0 ? (wert('r4_h') * wert('r4_lg')) / te : 0;
+    marke.textContent = t('res_caption_sollstk');
+    feld.textContent = zahl(aufZehntel(stk), 1) + ' ' + t('stk_suffix');
+  }
+}
+
+// =====================================================================
+//  Seite "Auftrag"
+// =====================================================================
+function auftragRechnen(){
+  const te = wert('a_te'), menge = wert('a_menge'), lg = wert('a_lg');
+  const s = SCHICHTEN[schicht];
+  const beginn = minAusUhrzeit(s.start);
+  const startStr = document.getElementById('a_start').value || s.start;
+
+  let start = minAusUhrzeit(startStr) - beginn;
+  if (start < 0) start += 1440;                       // Nachtschicht ueber Mitternacht
+  start = Math.max(0, Math.min(start, SCHICHTLAENGE));
+
+  // --- 1) Wann ist die Zielstueckzahl geschafft? ---
+  const nettoStd = lg > 0 ? (te * menge) / lg : 0;
+  // Auf die volle Minute nach oben: eine angebrochene Minute muss man
+  // arbeiten, sonst stempelt man zu frueh ab.
+  const fertig = Math.ceil(endeNachNetto(start, nettoStd * 60, s.pausen, SCHICHTLAENGE) - 1e-9);
+
+  document.getElementById('a_uhrzeit').textContent = uhrzeitAusMin(beginn + fertig);
+  document.getElementById('a_unter').textContent =
+    (fertig > SCHICHTLAENGE) ? t('ueberstunden_note') : t(s.nameKey) + ' · ' + t('aufgerundet');
+
+  document.getElementById('a_netto').textContent =
+    zahl(nettoStd) + t('h_suffix') + ' (' + zahl(nettoStd * 60, 0) + ' ' + t('min_suffix') + ')';
+  document.getElementById('a_stkh').textContent = zahl(te > 0 ? aufZehntel(lg / te) : 0, 1);
+  document.getElementById('a_ende').textContent = uhrzeitAusMin(beginn + SCHICHTLAENGE);
+
+  const diff = fertig - SCHICHTLAENGE;
+  const diffFeld = document.getElementById('a_diff');
+  if (diff === 0){
+    diffFeld.textContent = t('diff_punkt');
+    diffFeld.className = 'wert';
+  } else if (diff < 0){
+    diffFeld.textContent = dauerText(diff) + ' ' + t('diff_frueher');
+    diffFeld.className = 'wert gut';
+  } else {
+    diffFeld.textContent = dauerText(diff) + ' ' + t('diff_spaeter');
+    diffFeld.className = 'wert schlecht';
+  }
+
+  // --- 2) Was muss ab Auftragsbeginn bis Feierabend noch runter? ---
+  const restStd = nettoZwischen(start, SCHICHTLAENGE, s.pausen, SCHICHTLAENGE) / 60;
+  const soll = te > 0 ? aufZehntel((restStd * lg) / te) : 0;
+
+  document.getElementById('a_soll').textContent = zahl(soll, 1) + ' ' + t('stk_suffix');
+  document.getElementById('a_sollUnter').textContent =
+    t('restzeit_ab') + ' ' + startStr + ': ' + zahl(restStd) + ' ' + t('netto_suffix');
+}
+
+// =====================================================================
+//  Seitenwechsel, Sprache, Start
+// =====================================================================
+function seitenBedienung(){
+  document.querySelectorAll('nav.leiste button').forEach(function(b){
+    b.onclick = function(){
+      document.querySelectorAll('nav.leiste button').forEach(function(x){ x.classList.toggle('an', x === b); });
+      document.querySelectorAll('section.seite').forEach(function(sec){
+        sec.classList.toggle('an', sec.id === 'seite-' + b.dataset.seite);
+      });
+      window.scrollTo(0, 0);
+    };
+  });
+}
+
+function spracheBedienung(){
+  document.querySelectorAll('.sprache button').forEach(function(b){
+    b.onclick = function(){
+      sprache = b.dataset.sprache;
+      document.querySelectorAll('.sprache button').forEach(function(x){ x.classList.toggle('an', x === b); });
+      texteSetzen();
+      allesNeu();
+    };
+  });
+}
+
+function allesNeu(){
+  schichtwahlZeichnen('schichtwahl-1');
+  schichtwahlZeichnen('schichtwahl-2');
+  schichtZeilenZeichnen();
+  if (document.getElementById('pausenfeld').classList.contains('offen')) pausenZeilenZeichnen();
+  rechnen();
+  auftragRechnen();
+}
+
+document.querySelectorAll('#seite-rechner input, #seite-auftrag input').forEach(function(feld){
+  feld.addEventListener('input', function(){ rechnen(); auftragRechnen(); });
+});
+
+pausenLaden();
+seitenBedienung();
+rechenartBedienung();
+spracheBedienung();
+pausenBedienung();
+document.getElementById('a_start').value = SCHICHTEN[schicht].start;
+texteSetzen();
+allesNeu();
+</script>
+</body>
+</html>
