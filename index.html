@@ -9,6 +9,10 @@
      Laeuft komplett im Browser, kein Server. Pausenzeiten liegen nur
      lokal auf dem Handy (localStorage), es gehen keine Daten raus.
 
+     28.08.2026  Leistungsgrad und te bleiben stehen - werden wie die Pausen
+                 nur lokal auf dem Geraet gemerkt, jeder hat also seine
+                 eigenen Werte. Stueckzahlen absichtlich nicht, die sind
+                 bei jedem Auftrag anders.
      28.08.2026  Menueleiste von links nach unten geholt - liegt fest am
                  unteren Rand, mit Luft fuer den Balken beim iPhone im
                  App-Modus. Impressumzeile unten.
@@ -628,6 +632,39 @@ function pausenSichern(){
 }
 
 // =====================================================================
+//  Zuletzt eingetippte Werte merken
+//  Leistungsgrad und te aendern sich selten, die tippt sonst jeder jeden
+//  Tag neu ein. Liegt wie die Pausen nur im Browser des Geraets - nichts
+//  geht raus, und der Kollege am Nachbarplatz hat seine eigenen Werte.
+//  Stueckzahlen und Auftragsbeginn bleiben absichtlich draussen, die
+//  gehoeren zum einzelnen Auftrag.
+// =====================================================================
+const GEMERKT = ['r1_lg','r1_te','r2_lg','r2_te','r3_te','r4_lg','r4_te','a_lg','a_te'];
+
+function werteLaden(){
+  try {
+    const roh = localStorage.getItem('akkord_werte');
+    if (!roh) return;
+    const obj = JSON.parse(roh);
+    GEMERKT.forEach(function(id){
+      const feld = document.getElementById(id);
+      if (feld && obj[id] !== undefined && obj[id] !== '') feld.value = obj[id];
+    });
+  } catch (e) {}
+}
+
+function werteMerken(){
+  try {
+    const obj = {};
+    GEMERKT.forEach(function(id){
+      const feld = document.getElementById(id);
+      if (feld) obj[id] = feld.value;
+    });
+    localStorage.setItem('akkord_werte', JSON.stringify(obj));
+  } catch (e) {}
+}
+
+// =====================================================================
 //  Kleinkram
 // =====================================================================
 function minAusUhrzeit(s){
@@ -977,10 +1014,11 @@ function allesNeu(){
 }
 
 document.querySelectorAll('#seite-rechner input, #seite-auftrag input').forEach(function(feld){
-  feld.addEventListener('input', function(){ rechnen(); auftragRechnen(); });
+  feld.addEventListener('input', function(){ rechnen(); auftragRechnen(); werteMerken(); });
 });
 
 pausenLaden();
+werteLaden();
 seitenBedienung();
 rechenartBedienung();
 spracheBedienung();
