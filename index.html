@@ -9,6 +9,9 @@
      Laeuft komplett im Browser, kein Server. Pausenzeiten liegen nur
      lokal auf dem Handy (localStorage), es gehen keine Daten raus.
 
+     28.08.2026  Versionsstempel unten - bei Rueckfragen von Kollegen sieht
+                 man sofort, ob sie noch auf einer alten Fassung haengen.
+                 Bei jeder Aenderung STAND mit anpassen.
      28.08.2026  Zahlenfelder sind jetzt Textfelder mit Ziffernblock. Mit
                  type="number" hat das Handy das Komma verschluckt, aus
                  "2,8" wurde "28" oder ein leeres Feld - dann stand auch
@@ -230,6 +233,7 @@
   }
   .impressum b{color:var(--text);font-weight:600;letter-spacing:.03em}
   .warnung{margin-top:8px;color:var(--rot);font-size:10.5px}
+  .impressum .stand{margin-top:5px;font-family:var(--mono);font-size:9px;letter-spacing:.06em;opacity:.75}
 </style>
 </head>
 <body>
@@ -402,6 +406,7 @@
 
   <div class="impressum">
     <span data-txt="impressum">Programmiert von</span> <b>Michail Weinhardt</b>
+    <div class="stand" id="stand"></div>
   </div>
 
 </div>
@@ -423,8 +428,12 @@
 </nav>
 
 <script>
+// Bei jeder Aenderung an dieser Datei mit hochzaehlen - steht unten auf
+// der Seite und sagt einem am Telefon sofort, welche Fassung der Kollege hat.
+const STAND = '28.08.2026';
+
 // =====================================================================
-//  Texte DE / RU
+//  Texte DE / RU / TR / AR
 // =====================================================================
 const TEXTE = {
   de: {
@@ -462,6 +471,7 @@ const TEXTE = {
     restzeit_ab:"Restzeit ab", netto_suffix:"h netto bis Feierabend",
     aufgerundet:"auf volle Minute aufgerundet",
     impressum:"Programmiert von",
+    stand:"Stand",
     speicher_aus:"Dieses Gerät speichert nichts – privater Modus?",
     rest_hinweis:"{stk} Stk. im Akkord – restliche {min} min abstempeln (z. B. Fehlerbeseitigung)",
   },
@@ -500,6 +510,7 @@ const TEXTE = {
     restzeit_ab:"Оставшееся время с", netto_suffix:"ч нетто до конца смены",
     aufgerundet:"округлено до полной минуты",
     impressum:"Разработал",
+    stand:"Версия от",
     speicher_aus:"Это устройство ничего не сохраняет – приватный режим?",
     rest_hinweis:"{stk} шт. по аккорду – оставшиеся {min} мин отметить отдельно (напр. устранение брака)",
   },
@@ -542,6 +553,7 @@ const TEXTE = {
     restzeit_ab:"Kalan süre", netto_suffix:"sa net vardiya sonuna kadar",
     aufgerundet:"tam dakikaya yuvarlandı",
     impressum:"Geliştiren",
+    stand:"Sürüm",
     speicher_aus:"Bu cihaz hiçbir şey kaydetmiyor – gizli mod?",
     rest_hinweis:"{stk} adet akortta – kalan {min} dk ayrı damgala (örn. hata giderme)",
   },
@@ -584,6 +596,7 @@ const TEXTE = {
     restzeit_ab:"الوقت المتبقي من", netto_suffix:"س صافي حتى نهاية الوردية",
     aufgerundet:"مقرّب إلى الدقيقة الكاملة",
     impressum:"برمجة",
+    stand:"إصدار",
     speicher_aus:"هذا الجهاز لا يحفظ شيئاً – وضع التصفح الخاص؟",
     rest_hinweis:"{stk} قطعة بالقطعة – سجّل الـ {min} د المتبقية على بند آخر (مثل إصلاح العيوب)",
   }
@@ -598,6 +611,7 @@ function texteSetzen(){
   document.querySelectorAll('[data-txt]').forEach(function(el){
     el.textContent = t(el.dataset.txt);
   });
+  document.getElementById('stand').textContent = t('stand') + ' ' + STAND;
   document.title = t('h1');
   document.documentElement.lang = sprache;
   document.documentElement.dir = (sprache === 'ar') ? 'rtl' : 'ltr';
